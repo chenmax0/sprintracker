@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Auth\Infrastructure\Symfony\Controllers;
 
-use App\Auth\Application\RegisterUser\Handler as RegisterUserHandler;
-use App\Auth\Application\RegisterUser\Payload as RegisterUserPayload;
+use App\Auth\Application\RegisterUser\RegisterUserHandler;
+use App\Auth\Application\RegisterUser\RegisterUserPayload;
 use App\Auth\Domain\Exception\EmailAlreadyUsedException;
 use App\Auth\Domain\Exception\InvalidEmailException;
 use App\Auth\Infrastructure\Security\SecurityUser;

@@ -6,9 +6,9 @@ namespace App\Auth\Application\RegisterUser;
 
 use Assert\Assert;
 
-final class Validator
+final class RegisterUserValidator
 {
-    public function validate(Payload $payload): void
+    public function validate(RegisterUserPayload $payload): void
     {
         Assert::lazy()
             ->that($payload->email, 'email')->notBlank()->email()

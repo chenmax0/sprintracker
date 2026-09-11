@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Team\Infrastructure\Symfony\Controllers;
 
 use App\Auth\Infrastructure\Security\SecurityUser;
-use App\Team\Application\CreateTeam\Handler as CreateTeamHandler;
-use App\Team\Application\CreateTeam\Payload as CreateTeamPayload;
+use App\Team\Application\CreateTeam\CreateTeamHandler;
+use App\Team\Application\CreateTeam\CreateTeamPayload;
 use Assert\LazyAssertionException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;

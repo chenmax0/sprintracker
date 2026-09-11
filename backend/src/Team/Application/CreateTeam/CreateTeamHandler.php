@@ -12,17 +12,17 @@ use App\Team\Domain\TeamMembership;
 use App\Team\Domain\TeamMembershipRepositoryInterface;
 use App\Team\Domain\TeamRepositoryInterface;
 
-final class Handler
+final class CreateTeamHandler
 {
     public function __construct(
-        private Validator $validator,
+        private CreateTeamValidator $validator,
         private TeamRepositoryInterface $teams,
         private TeamMembershipRepositoryInterface $memberships,
         private TeamIdGeneratorInterface $ids,
     ) {
     }
 
-    public function handle(Payload $payload): Team
+    public function handle(CreateTeamPayload $payload): Team
     {
         $this->validator->validate($payload);
 

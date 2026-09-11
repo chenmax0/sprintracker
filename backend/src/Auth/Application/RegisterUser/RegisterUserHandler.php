@@ -11,17 +11,17 @@ use App\Auth\Domain\Exception\EmailAlreadyUsedException;
 use App\Auth\Domain\User;
 use App\Auth\Domain\UserRepositoryInterface;
 
-final class Handler
+final class RegisterUserHandler
 {
     public function __construct(
-        private Validator $validator,
+        private RegisterUserValidator $validator,
         private UserRepositoryInterface $users,
         private PasswordHasherInterface $hasher,
         private UserIdGeneratorInterface $ids,
     ) {
     }
 
-    public function handle(Payload $payload): User
+    public function handle(RegisterUserPayload $payload): User
     {
         $this->validator->validate($payload);
 

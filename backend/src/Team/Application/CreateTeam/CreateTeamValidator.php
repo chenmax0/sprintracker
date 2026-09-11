@@ -6,9 +6,9 @@ namespace App\Team\Application\CreateTeam;
 
 use Assert\Assert;
 
-final class Validator
+final class CreateTeamValidator
 {
-    public function validate(Payload $payload): void
+    public function validate(CreateTeamPayload $payload): void
     {
         Assert::lazy()
             ->that($payload->name, 'name')->notBlank()
