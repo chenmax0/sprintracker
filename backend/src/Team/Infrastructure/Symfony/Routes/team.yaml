@@ -1,0 +1,4 @@
+team_create:
+    path: /api/teams
+    controller: App\Team\Infrastructure\Symfony\Controllers\TeamController::create
+    methods: [POST]

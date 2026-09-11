@@ -1,2 +1,5 @@
 auth:
     resource: ../src/Auth/Infrastructure/Symfony/Routes/auth.yaml
+
+team:
+    resource: ../src/Team/Infrastructure/Symfony/Routes/team.yaml
