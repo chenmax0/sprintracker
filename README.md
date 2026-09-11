@@ -13,7 +13,7 @@ docker/     Dockerfiles et configs (php, nginx, caddy) pour les deux services
 ## Développement local
 
 ```bash
-docker compose up -d --build
+make up
 ```
 
 - Front-end (Vite, hot reload) : http://localhost:5173
@@ -22,14 +22,16 @@ docker compose up -d --build
 
 Le code est monté en volume : toute modification dans `backend/` ou `frontend/` est prise en compte à chaud.
 
-Commandes utiles :
+Commandes utiles (voir `make help` pour la liste complète) :
 
 ```bash
-docker compose exec php bin/console ...        # console Symfony
-docker compose exec php composer require ...   # ajouter une dépendance PHP
-docker compose exec frontend npm install ...   # ajouter une dépendance JS
-docker compose logs -f php
-docker compose down
+make console cmd="cache:clear"           # console Symfony
+make composer cmd="require symfony/mailer"  # ajouter une dépendance PHP
+make npm cmd="install axios"             # ajouter une dépendance JS
+make migration                           # générer une migration Doctrine
+make migrate                             # appliquer les migrations
+make logs
+make down
 ```
 
 ## Production
