@@ -16,12 +16,7 @@ use Symfony\Component\Security\Http\Attribute\CurrentUser;
 
 final class AuthenticationController
 {
-    public function __construct(
-        private RegisterUserHandler $registerUserHandler,
-    ) {
-    }
-
-    public function register(Request $request): JsonResponse
+    public function register(RegisterUserHandler $handler, Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true) ?? [];
 
@@ -32,7 +27,7 @@ final class AuthenticationController
         );
 
         try {
-            $user = $this->registerUserHandler->handle($payload);
+            $user = $handler->handle($payload);
         } catch (LazyAssertionException $e) {
             $errors = array_map(static fn ($error) => $error->getMessage(), $e->getErrorExceptions());
 

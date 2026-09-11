@@ -14,19 +14,14 @@ use Symfony\Component\Security\Http\Attribute\CurrentUser;
 
 final class TeamController
 {
-    public function __construct(
-        private CreateTeamHandler $createTeamHandler,
-    ) {
-    }
-
-    public function create(Request $request, #[CurrentUser] SecurityUser $user): JsonResponse
+    public function create(CreateTeamHandler $handler, Request $request, #[CurrentUser] SecurityUser $user): JsonResponse
     {
         $data = json_decode($request->getContent(), true) ?? [];
 
         $payload = new CreateTeamPayload($data['name'] ?? '', $user->getId());
 
         try {
-            $team = $this->createTeamHandler->handle($payload);
+            $team = $handler->handle($payload);
         } catch (LazyAssertionException $e) {
             $errors = array_map(static fn ($error) => $error->getMessage(), $e->getErrorExceptions());
 
