@@ -33,6 +33,24 @@ final class SqlTeamMembershipRepository implements TeamMembershipRepositoryInter
         );
     }
 
+    public function findMembership(TeamId $teamId, MemberId $memberId): ?TeamMembership
+    {
+        $row = $this->connection->fetchAssociative(
+            'SELECT team_id, user_id, role FROM team_membership WHERE team_id = :team_id AND user_id = :user_id',
+            ['team_id' => (string) $teamId, 'user_id' => (string) $memberId],
+        );
+
+        if (false === $row) {
+            return null;
+        }
+
+        return TeamMembership::fromPersistence(
+            new TeamId($row['team_id']),
+            new MemberId($row['user_id']),
+            MemberRole::from($row['role']),
+        );
+    }
+
     public function findByTeamId(TeamId $teamId): array
     {
         $rows = $this->connection->fetchAllAssociative(

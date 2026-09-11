@@ -8,6 +8,8 @@ interface TeamMembershipRepositoryInterface
 {
     public function save(TeamMembership $membership): void;
 
+    public function findMembership(TeamId $teamId, MemberId $memberId): ?TeamMembership;
+
     /**
      * @return list<TeamMembership>
      */

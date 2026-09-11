@@ -43,3 +43,6 @@ services:
 
     App\Team\Domain\TeamMembershipRepositoryInterface:
         alias: App\Team\Infrastructure\Persistence\Sql\SqlTeamMembershipRepository
+
+    App\Team\Application\Port\UserLookupInterface:
+        alias: App\Team\Infrastructure\Persistence\Sql\SqlUserLookup
