@@ -5,36 +5,33 @@ declare(strict_types=1);
 namespace App\Team\Infrastructure\Symfony\Controllers;
 
 use App\Auth\Infrastructure\Security\SecurityUser;
-use App\Team\Application\CreateTeam\CreateTeamCommand;
-use App\Team\Application\CreateTeam\CreateTeamHandler;
+use App\Team\Application\CreateTeam\Handler as CreateTeamHandler;
+use App\Team\Application\CreateTeam\Payload as CreateTeamPayload;
+use Assert\LazyAssertionException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
-use Symfony\Component\Validator\Constraints as Assert;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 final class TeamController
 {
     public function __construct(
         private CreateTeamHandler $createTeamHandler,
-        private ValidatorInterface $validator,
     ) {
     }
 
     public function create(Request $request, #[CurrentUser] SecurityUser $user): JsonResponse
     {
         $data = json_decode($request->getContent(), true) ?? [];
-        $name = $data['name'] ?? '';
 
-        $violations = $this->validator->validate($name, [new Assert\NotBlank()]);
+        $payload = new CreateTeamPayload($data['name'] ?? '', $user->getId());
 
-        if (count($violations) > 0) {
-            $errors = array_map(static fn ($violation) => $violation->getMessage(), iterator_to_array($violations));
+        try {
+            $team = $this->createTeamHandler->handle($payload);
+        } catch (LazyAssertionException $e) {
+            $errors = array_map(static fn ($error) => $error->getMessage(), $e->getErrorExceptions());
 
             return new JsonResponse(['errors' => $errors], 422);
         }
-
-        $team = ($this->createTeamHandler)(new CreateTeamCommand($name, $user->getId()));
 
         return new JsonResponse([
             'id' => (string) $team->getId(),

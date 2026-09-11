@@ -11,24 +11,27 @@ use App\Auth\Domain\Exception\EmailAlreadyUsedException;
 use App\Auth\Domain\User;
 use App\Auth\Domain\UserRepositoryInterface;
 
-final class RegisterUserHandler
+final class Handler
 {
     public function __construct(
+        private Validator $validator,
         private UserRepositoryInterface $users,
         private PasswordHasherInterface $hasher,
         private UserIdGeneratorInterface $ids,
     ) {
     }
 
-    public function __invoke(RegisterUserCommand $command): User
+    public function handle(Payload $payload): User
     {
-        $email = new Email($command->email);
+        $this->validator->validate($payload);
+
+        $email = new Email($payload->email);
 
         if (null !== $this->users->findByEmail($email)) {
-            throw new EmailAlreadyUsedException($command->email);
+            throw new EmailAlreadyUsedException($payload->email);
         }
 
-        $user = User::register($this->ids->generate(), $email, $command->name, $this->hasher->hash($command->plainPassword));
+        $user = User::register($this->ids->generate(), $email, $payload->name, $this->hasher->hash($payload->plainPassword));
         $this->users->save($user);
 
         return $user;

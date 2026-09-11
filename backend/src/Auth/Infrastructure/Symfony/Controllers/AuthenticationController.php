@@ -4,22 +4,20 @@ declare(strict_types=1);
 
 namespace App\Auth\Infrastructure\Symfony\Controllers;
 
-use App\Auth\Application\RegisterUser\RegisterUserCommand;
-use App\Auth\Application\RegisterUser\RegisterUserHandler;
+use App\Auth\Application\RegisterUser\Handler as RegisterUserHandler;
+use App\Auth\Application\RegisterUser\Payload as RegisterUserPayload;
 use App\Auth\Domain\Exception\EmailAlreadyUsedException;
 use App\Auth\Domain\Exception\InvalidEmailException;
 use App\Auth\Infrastructure\Security\SecurityUser;
+use Assert\LazyAssertionException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
-use Symfony\Component\Validator\Constraints as Assert;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 final class AuthenticationController
 {
     public function __construct(
         private RegisterUserHandler $registerUserHandler,
-        private ValidatorInterface $validator,
     ) {
     }
 
@@ -27,22 +25,18 @@ final class AuthenticationController
     {
         $data = json_decode($request->getContent(), true) ?? [];
 
-        $email = $data['email'] ?? '';
-        $name = $data['name'] ?? '';
-        $password = $data['password'] ?? '';
-
-        $violations = $this->validator->validate($email, [new Assert\NotBlank(), new Assert\Email()]);
-        $violations->addAll($this->validator->validate($name, [new Assert\NotBlank()]));
-        $violations->addAll($this->validator->validate($password, [new Assert\NotBlank(), new Assert\Length(min: 8)]));
-
-        if (count($violations) > 0) {
-            $errors = array_map(static fn ($violation) => $violation->getMessage(), iterator_to_array($violations));
-
-            return new JsonResponse(['errors' => $errors], 422);
-        }
+        $payload = new RegisterUserPayload(
+            $data['email'] ?? '',
+            $data['name'] ?? '',
+            $data['password'] ?? '',
+        );
 
         try {
-            $user = ($this->registerUserHandler)(new RegisterUserCommand($email, $name, $password));
+            $user = $this->registerUserHandler->handle($payload);
+        } catch (LazyAssertionException $e) {
+            $errors = array_map(static fn ($error) => $error->getMessage(), $e->getErrorExceptions());
+
+            return new JsonResponse(['errors' => $errors], 422);
         } catch (InvalidEmailException|EmailAlreadyUsedException $e) {
             return new JsonResponse(['errors' => [$e->getMessage()]], 422);
         }

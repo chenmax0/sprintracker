@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Auth\Application\RegisterUser;
 
-final class RegisterUserCommand
+final class Payload
 {
     public function __construct(
         public readonly string $email,

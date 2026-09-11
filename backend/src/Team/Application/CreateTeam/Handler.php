@@ -12,23 +12,26 @@ use App\Team\Domain\TeamMembership;
 use App\Team\Domain\TeamMembershipRepositoryInterface;
 use App\Team\Domain\TeamRepositoryInterface;
 
-final class CreateTeamHandler
+final class Handler
 {
     public function __construct(
+        private Validator $validator,
         private TeamRepositoryInterface $teams,
         private TeamMembershipRepositoryInterface $memberships,
         private TeamIdGeneratorInterface $ids,
     ) {
     }
 
-    public function __invoke(CreateTeamCommand $command): Team
+    public function handle(Payload $payload): Team
     {
-        $team = Team::create($this->ids->generate(), $command->name);
+        $this->validator->validate($payload);
+
+        $team = Team::create($this->ids->generate(), $payload->name);
         $this->teams->save($team);
 
         $membership = TeamMembership::create(
             $team->getId(),
-            new MemberId($command->creatorMemberId),
+            new MemberId($payload->creatorMemberId),
             MemberRole::Owner,
         );
         $this->memberships->save($membership);
