@@ -1,7 +1,9 @@
 .DEFAULT_GOAL := help
 COMPOSE := docker compose
 
-.PHONY: help up down build restart logs ps sh-php sh-frontend console composer npm migration migrate test-backend
+.PHONY: help up down build restart logs ps sh-php sh-frontend console composer npm migration migrate test-db-setup test-backend
+
+TEST_DATABASE_URL := postgresql://app:app@database:5432/sprintracker_test?serverVersion=16&charset=utf8
 
 help: ## Affiche cette aide
 	@grep -E '^[a-zA-Z0-9_-]+:.*## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*## "}; {printf "\033[36m%-16s\033[0m %s\n", $$1, $$2}'
@@ -45,5 +47,9 @@ migration: ## Génère une migration Doctrine à partir des entités
 migrate: ## Applique les migrations Doctrine
 	$(COMPOSE) exec php bin/console doctrine:migrations:migrate --no-interaction
 
-test-backend: ## Lance les tests PHPUnit du backend
-	$(COMPOSE) exec php bin/phpunit
+test-db-setup: ## Crée et migre la base de test Postgres (idempotent)
+	$(COMPOSE) exec -e DATABASE_URL="$(TEST_DATABASE_URL)" -e APP_ENV=test php bin/console doctrine:database:create --if-not-exists
+	$(COMPOSE) exec -e DATABASE_URL="$(TEST_DATABASE_URL)" -e APP_ENV=test php bin/console doctrine:migrations:migrate -n
+
+test-backend: test-db-setup ## Lance les tests PHPUnit du backend
+	$(COMPOSE) exec -e DATABASE_URL="$(TEST_DATABASE_URL)" -e APP_ENV=test php bin/phpunit
