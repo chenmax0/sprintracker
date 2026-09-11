@@ -24,3 +24,6 @@ services:
     # please note that last definitions always *replace* previous ones
     App\Auth\Domain\UserRepositoryInterface:
         alias: App\Auth\Infrastructure\Persistence\Sql\SqlUserRepository
+
+    App\Auth\Application\Port\PasswordHasherInterface:
+        alias: App\Auth\Infrastructure\Security\SymfonyPasswordHasher
