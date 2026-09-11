@@ -1,5 +1,2 @@
-controllers:
-    resource:
-        path: ../src/Controller/
-        namespace: App\Controller
-    type: attribute
+auth:
+    resource: ../src/Auth/Infrastructure/Symfony/Routes/auth.yaml

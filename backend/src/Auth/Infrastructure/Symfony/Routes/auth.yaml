@@ -1,0 +1,14 @@
+app_register:
+    path: /api/register
+    controller: App\Auth\Infrastructure\Symfony\Controllers\AuthenticationController::register
+    methods: [POST]
+
+app_me:
+    path: /api/me
+    controller: App\Auth\Infrastructure\Symfony\Controllers\AuthenticationController::me
+    methods: [GET]
+
+api_login:
+    path: /api/login
+    controller: App\Auth\Infrastructure\Symfony\Controllers\AuthenticationController::login
+    methods: [POST]

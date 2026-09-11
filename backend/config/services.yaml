@@ -20,6 +20,12 @@ services:
             - '../src/Kernel.php'
             - '../src/*/Domain/'
 
+    # Controllers referenced by FQCN in Infrastructure/Symfony/Routes/*.yaml files need this tag
+    # to have their action arguments (beyond Request) resolved from the container.
+    App\Auth\Infrastructure\Symfony\Controllers\:
+        resource: '../src/Auth/Infrastructure/Symfony/Controllers/'
+        tags: ['controller.service_arguments']
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
     App\Auth\Domain\UserRepositoryInterface:
