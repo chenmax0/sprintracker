@@ -33,3 +33,9 @@ services:
 
     App\Auth\Application\Port\PasswordHasherInterface:
         alias: App\Auth\Infrastructure\Security\SymfonyPasswordHasher
+
+    App\Team\Domain\TeamRepositoryInterface:
+        alias: App\Team\Infrastructure\Persistence\Sql\SqlTeamRepository
+
+    App\Team\Domain\TeamMembershipRepositoryInterface:
+        alias: App\Team\Infrastructure\Persistence\Sql\SqlTeamMembershipRepository
