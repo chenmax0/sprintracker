@@ -2,18 +2,21 @@
 
 namespace App\Tests\Auth\Infrastructure\Symfony\Controllers;
 
+use App\Tests\ResetsDatabase;
 use Doctrine\DBAL\Connection;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 class RegisterActionTest extends WebTestCase
 {
+    use ResetsDatabase;
+
     private KernelBrowser $client;
 
     protected function setUp(): void
     {
         $this->client = static::createClient();
-        $this->client->getContainer()->get(Connection::class)->executeStatement('DELETE FROM "user"');
+        $this->resetDatabase($this->client->getContainer()->get(Connection::class));
     }
 
     public function testRegisterCreatesUser(): void

@@ -7,21 +7,21 @@ use App\Auth\Application\Port\UserIdGeneratorInterface;
 use App\Auth\Domain\Email;
 use App\Auth\Domain\User;
 use App\Auth\Domain\UserRepositoryInterface;
+use App\Tests\ResetsDatabase;
 use Doctrine\DBAL\Connection;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 class CreateTeamActionTest extends WebTestCase
 {
+    use ResetsDatabase;
+
     private KernelBrowser $client;
 
     protected function setUp(): void
     {
         $this->client = static::createClient();
-        $connection = $this->client->getContainer()->get(Connection::class);
-        $connection->executeStatement('DELETE FROM team_membership');
-        $connection->executeStatement('DELETE FROM team');
-        $connection->executeStatement('DELETE FROM "user"');
+        $this->resetDatabase($this->client->getContainer()->get(Connection::class));
     }
 
     private function authenticate(string $email = 'jane@example.com', string $password = 'password123'): string
