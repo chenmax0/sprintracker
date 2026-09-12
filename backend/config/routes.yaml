@@ -6,3 +6,6 @@ team:
 
 project:
     resource: ../src/Project/Infrastructure/Symfony/Routes/project.yaml
+
+sprint:
+    resource: ../src/Sprint/Infrastructure/Symfony/Routes/sprint.yaml

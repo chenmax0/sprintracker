@@ -34,6 +34,10 @@ services:
         resource: '../src/Project/Infrastructure/Symfony/Controllers/'
         tags: ['controller.service_arguments']
 
+    App\Sprint\Infrastructure\Symfony\Controllers\:
+        resource: '../src/Sprint/Infrastructure/Symfony/Controllers/'
+        tags: ['controller.service_arguments']
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
     App\Auth\Domain\UserRepositoryInterface:
@@ -56,3 +60,9 @@ services:
 
     App\Project\Application\Port\TeamOwnershipCheckerInterface:
         alias: App\Project\Infrastructure\Persistence\Sql\SqlTeamOwnershipChecker
+
+    App\Sprint\Domain\SprintRepositoryInterface:
+        alias: App\Sprint\Infrastructure\Persistence\Sql\SqlSprintRepository
+
+    App\Sprint\Application\Port\ProjectTeamMembershipCheckerInterface:
+        alias: App\Sprint\Infrastructure\Persistence\Sql\SqlProjectTeamMembershipChecker

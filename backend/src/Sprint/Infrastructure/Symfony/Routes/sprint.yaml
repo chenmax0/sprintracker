@@ -1,0 +1,4 @@
+sprint_create:
+    path: /api/projects/{projectId}/sprints
+    controller: App\Sprint\Infrastructure\Symfony\Controllers\SprintController::create
+    methods: [POST]
