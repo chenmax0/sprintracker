@@ -3,3 +3,6 @@ auth:
 
 team:
     resource: ../src/Team/Infrastructure/Symfony/Routes/team.yaml
+
+project:
+    resource: ../src/Project/Infrastructure/Symfony/Routes/project.yaml

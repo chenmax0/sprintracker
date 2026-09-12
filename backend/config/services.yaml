@@ -30,6 +30,10 @@ services:
         resource: '../src/Team/Infrastructure/Symfony/Controllers/'
         tags: ['controller.service_arguments']
 
+    App\Project\Infrastructure\Symfony\Controllers\:
+        resource: '../src/Project/Infrastructure/Symfony/Controllers/'
+        tags: ['controller.service_arguments']
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
     App\Auth\Domain\UserRepositoryInterface:
@@ -46,3 +50,9 @@ services:
 
     App\Team\Application\Port\UserLookupInterface:
         alias: App\Team\Infrastructure\Persistence\Sql\SqlUserLookup
+
+    App\Project\Domain\ProjectRepositoryInterface:
+        alias: App\Project\Infrastructure\Persistence\Sql\SqlProjectRepository
+
+    App\Project\Application\Port\TeamOwnershipCheckerInterface:
+        alias: App\Project\Infrastructure\Persistence\Sql\SqlTeamOwnershipChecker
