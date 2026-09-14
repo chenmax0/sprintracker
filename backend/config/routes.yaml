@@ -9,3 +9,6 @@ project:
 
 sprint:
     resource: ../src/Sprint/Infrastructure/Symfony/Routes/sprint.yaml
+
+ticket:
+    resource: ../src/Ticket/Infrastructure/Symfony/Routes/ticket.yaml

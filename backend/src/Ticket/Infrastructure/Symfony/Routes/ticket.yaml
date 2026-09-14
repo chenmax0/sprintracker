@@ -1,0 +1,19 @@
+ticket_create:
+    path: /api/projects/{projectId}/tickets
+    controller: App\Ticket\Infrastructure\Symfony\Controllers\TicketController::create
+    methods: [POST]
+
+ticket_assign:
+    path: /api/tickets/{ticketId}/assign
+    controller: App\Ticket\Infrastructure\Symfony\Controllers\TicketController::assign
+    methods: [POST]
+
+ticket_add_comment:
+    path: /api/tickets/{ticketId}/comments
+    controller: App\Ticket\Infrastructure\Symfony\Controllers\TicketController::addComment
+    methods: [POST]
+
+ticket_list_comments:
+    path: /api/tickets/{ticketId}/comments
+    controller: App\Ticket\Infrastructure\Symfony\Controllers\TicketController::listComments
+    methods: [GET]

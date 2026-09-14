@@ -38,6 +38,10 @@ services:
         resource: '../src/Sprint/Infrastructure/Symfony/Controllers/'
         tags: ['controller.service_arguments']
 
+    App\Ticket\Infrastructure\Symfony\Controllers\:
+        resource: '../src/Ticket/Infrastructure/Symfony/Controllers/'
+        tags: ['controller.service_arguments']
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
     App\Auth\Domain\UserRepositoryInterface:
@@ -66,3 +70,15 @@ services:
 
     App\Sprint\Application\Port\ProjectTeamMembershipCheckerInterface:
         alias: App\Sprint\Infrastructure\Persistence\Sql\SqlProjectTeamMembershipChecker
+
+    App\Ticket\Domain\TicketRepositoryInterface:
+        alias: App\Ticket\Infrastructure\Persistence\Sql\SqlTicketRepository
+
+    App\Ticket\Domain\CommentRepositoryInterface:
+        alias: App\Ticket\Infrastructure\Persistence\Sql\SqlCommentRepository
+
+    App\Ticket\Application\Port\ProjectTeamMembershipCheckerInterface:
+        alias: App\Ticket\Infrastructure\Persistence\Sql\SqlProjectTeamMembershipChecker
+
+    App\Ticket\Application\Port\SprintLookupInterface:
+        alias: App\Ticket\Infrastructure\Persistence\Sql\SqlSprintLookup
