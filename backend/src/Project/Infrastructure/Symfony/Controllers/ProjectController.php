@@ -7,6 +7,8 @@ namespace App\Project\Infrastructure\Symfony\Controllers;
 use App\Auth\Infrastructure\Security\SecurityUser;
 use App\Project\Application\CreateProject\CreateProjectHandler;
 use App\Project\Application\CreateProject\CreateProjectPayload;
+use App\Project\Application\CreateProjectWithTeam\CreateProjectWithTeamHandler;
+use App\Project\Application\CreateProjectWithTeam\CreateProjectWithTeamPayload;
 use App\Project\Application\GetProject\GetProjectHandler;
 use App\Project\Application\GetProject\GetProjectPayload;
 use App\Project\Application\ListMyProjects\ListMyProjectsHandler;
@@ -38,6 +40,19 @@ final class ProjectController
             return $this->validationErrorResponse($e);
         } catch (NotTeamOwnerException $e) {
             return new JsonResponse(['errors' => [$e->getMessage()]], 403);
+        }
+
+        return new JsonResponse($this->serializeProject($project), 201);
+    }
+
+    public function createWithTeam(CreateProjectWithTeamHandler $handler, Request $request, #[CurrentUser] SecurityUser $user): JsonResponse
+    {
+        $data = new JsonBody($request);
+
+        try {
+            $project = $handler->handle(new CreateProjectWithTeamPayload($user->getId(), $data->string('name')));
+        } catch (LazyAssertionException $e) {
+            return $this->validationErrorResponse($e);
         }
 
         return new JsonResponse($this->serializeProject($project), 201);
