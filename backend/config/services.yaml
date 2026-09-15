@@ -64,6 +64,9 @@ services:
     App\Team\Application\Port\UserLookupInterface:
         alias: App\Team\Infrastructure\Persistence\Sql\SqlUserLookup
 
+    App\Team\Application\Port\UserProfileLookupInterface:
+        alias: App\Team\Infrastructure\Persistence\Sql\SqlUserProfileLookup
+
     App\Project\Domain\ProjectRepositoryInterface:
         alias: App\Project\Infrastructure\Persistence\Sql\SqlProjectRepository
 

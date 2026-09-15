@@ -112,9 +112,11 @@ final class TeamController
         }
 
         $items = array_map(
-            static fn ($membership) => [
-                'memberId' => (string) $membership->getMemberId(),
-                'role' => $membership->getRole()->value,
+            static fn ($member) => [
+                'memberId' => $member->memberId,
+                'role' => $member->role->value,
+                'email' => $member->email,
+                'name' => $member->name,
             ],
             $memberships,
         );
