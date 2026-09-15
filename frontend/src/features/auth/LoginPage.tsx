@@ -13,7 +13,7 @@ export function LoginPage() {
     event.preventDefault()
     login.mutate(
       { email, password },
-      { onSuccess: () => navigate('/') },
+      { onSuccess: () => navigate('/app') },
     )
   }
 

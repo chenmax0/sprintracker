@@ -16,7 +16,7 @@ export function RegisterPage() {
     register.mutate(
       { email, name, password },
       {
-        onSuccess: () => login.mutate({ email, password }, { onSuccess: () => navigate('/') }),
+        onSuccess: () => login.mutate({ email, password }, { onSuccess: () => navigate('/app') }),
       },
     )
   }
