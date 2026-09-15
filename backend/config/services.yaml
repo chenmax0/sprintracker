@@ -4,6 +4,7 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    demo_team_id: '%env(DEMO_TEAM_ID)%'
 
 services:
     # default configuration for services in *this* file
@@ -40,6 +41,10 @@ services:
 
     App\Ticket\Infrastructure\Symfony\Controllers\:
         resource: '../src/Ticket/Infrastructure/Symfony/Controllers/'
+        tags: ['controller.service_arguments']
+
+    App\Demo\Infrastructure\Symfony\Controllers\:
+        resource: '../src/Demo/Infrastructure/Symfony/Controllers/'
         tags: ['controller.service_arguments']
 
     # add more service definitions when explicit configuration is needed
@@ -85,3 +90,10 @@ services:
 
     App\Ticket\Application\Port\SprintLookupInterface:
         alias: App\Ticket\Infrastructure\Persistence\Sql\SqlSprintLookup
+
+    App\Demo\Application\Port\DemoRepositoryInterface:
+        alias: App\Demo\Infrastructure\Persistence\Sql\SqlDemoRepository
+
+    App\Demo\Infrastructure\Persistence\Sql\SqlDemoRepository:
+        arguments:
+            $demoTeamId: '%demo_team_id%'

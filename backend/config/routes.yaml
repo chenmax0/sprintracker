@@ -12,3 +12,6 @@ sprint:
 
 ticket:
     resource: ../src/Ticket/Infrastructure/Symfony/Routes/ticket.yaml
+
+demo:
+    resource: ../src/Demo/Infrastructure/Symfony/Routes/demo.yaml

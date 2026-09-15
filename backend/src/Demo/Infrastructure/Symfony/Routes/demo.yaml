@@ -1,0 +1,4 @@
+demo_show:
+    path: /api/demo
+    controller: App\Demo\Infrastructure\Symfony\Controllers\DemoController::show
+    methods: [GET]
