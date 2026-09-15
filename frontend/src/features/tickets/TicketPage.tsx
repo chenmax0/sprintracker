@@ -1,11 +1,25 @@
 import { type FormEvent, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { ApiError } from '../../lib/apiClient'
+import { Card } from '../../lib/Card'
 import { MemberLabel } from '../../lib/MemberLabel'
 import { toMemberDirectory } from '../../lib/memberDirectory'
 import { useProject } from '../projects/hooks'
 import { useTeamMembers } from '../teams/hooks'
+import type { TicketStatus } from './api'
 import { useAddComment, useAssignTicket, useComments, useTicket } from './hooks'
+
+const STATUS_LABELS: Record<TicketStatus, string> = {
+  todo: 'À faire',
+  in_progress: 'En cours',
+  done: 'Terminé',
+}
+
+const STATUS_STYLES: Record<TicketStatus, string> = {
+  todo: 'bg-gray-100 text-gray-700',
+  in_progress: 'bg-amber-100 text-amber-700',
+  done: 'bg-emerald-100 text-emerald-700',
+}
 
 export function TicketPage() {
   const { ticketId } = useParams<{ ticketId: string }>()
@@ -33,38 +47,43 @@ export function TicketPage() {
   }
 
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-8">
+    <div className="mx-auto flex max-w-4xl flex-col gap-6">
       <div>
         {ticket && (
           <Link to={`/projects/${ticket.projectId}`} className="text-sm text-indigo-600 hover:underline">
             ← Projet
           </Link>
         )}
-        <h1 className="mt-2 text-xl font-semibold text-gray-900">{ticket?.title}</h1>
-        {ticket?.description && <p className="mt-1 text-sm text-gray-600">{ticket.description}</p>}
+        <h1 className="mt-2 text-2xl font-semibold text-gray-900">{ticket?.title}</h1>
+        {ticket?.description && <p className="mt-2 text-sm text-gray-600">{ticket.description}</p>}
       </div>
 
-      <section className="flex flex-wrap gap-6 rounded-md border border-gray-200 bg-white p-4 text-sm">
-        <div>
-          <span className="block text-xs text-gray-500">Statut</span>
-          <span className="font-medium text-gray-900">{ticket?.status}</span>
+      <Card>
+        <div className="flex flex-wrap gap-8 text-sm">
+          <div>
+            <span className="block text-xs text-gray-500">Statut</span>
+            {ticket && (
+              <span className={`mt-1 inline-block rounded px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[ticket.status]}`}>
+                {STATUS_LABELS[ticket.status]}
+              </span>
+            )}
+          </div>
+          <div>
+            <span className="block text-xs text-gray-500">Rapporté par</span>
+            {ticket && <MemberLabel memberId={ticket.reporterId} directory={memberDirectory} />}
+          </div>
+          <div>
+            <span className="block text-xs text-gray-500">Assigné à</span>
+            {ticket?.assigneeId ? (
+              <MemberLabel memberId={ticket.assigneeId} directory={memberDirectory} />
+            ) : (
+              <span className="text-gray-400">Personne</span>
+            )}
+          </div>
         </div>
-        <div>
-          <span className="block text-xs text-gray-500">Rapporté par</span>
-          {ticket && <MemberLabel memberId={ticket.reporterId} directory={memberDirectory} />}
-        </div>
-        <div>
-          <span className="block text-xs text-gray-500">Assigné à</span>
-          {ticket?.assigneeId ? (
-            <MemberLabel memberId={ticket.assigneeId} directory={memberDirectory} />
-          ) : (
-            <span className="text-gray-400">Personne</span>
-          )}
-        </div>
-      </section>
+      </Card>
 
-      <section>
-        <h2 className="mb-3 text-sm font-semibold text-gray-700">Réassigner</h2>
+      <Card title="Réassigner">
         <form onSubmit={handleAssign} className="flex max-w-sm gap-2">
           <select
             value={assigneeId}
@@ -81,7 +100,7 @@ export function TicketPage() {
           <button
             type="submit"
             disabled={assign.isPending}
-            className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-50"
+            className="shrink-0 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-50"
           >
             Assigner
           </button>
@@ -91,13 +110,12 @@ export function TicketPage() {
             {assign.error instanceof ApiError ? assign.error.message : "Erreur lors de l'assignation"}
           </p>
         )}
-      </section>
+      </Card>
 
-      <section>
-        <h2 className="mb-3 text-sm font-semibold text-gray-700">Commentaires</h2>
+      <Card title="Commentaires">
         <ul className="mb-4 flex flex-col gap-3">
           {comments?.map((comment) => (
-            <li key={comment.id} className="rounded-md border border-gray-200 bg-white p-3 text-sm">
+            <li key={comment.id} className="rounded-md border border-gray-200 p-3 text-sm">
               <div className="mb-1 flex items-center gap-2 text-xs text-gray-500">
                 <MemberLabel memberId={comment.authorId} directory={memberDirectory} />
                 <span>{new Date(comment.createdAt).toLocaleString()}</span>
@@ -124,7 +142,7 @@ export function TicketPage() {
             Commenter
           </button>
         </form>
-      </section>
+      </Card>
     </div>
   )
 }
