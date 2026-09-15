@@ -9,13 +9,16 @@ use App\Team\Application\AddTeamMember\AddTeamMemberHandler;
 use App\Team\Application\AddTeamMember\AddTeamMemberPayload;
 use App\Team\Application\CreateTeam\CreateTeamHandler;
 use App\Team\Application\CreateTeam\CreateTeamPayload;
+use App\Team\Application\GetTeam\GetTeamHandler;
+use App\Team\Application\GetTeam\GetTeamPayload;
+use App\Team\Application\ListMyTeams\ListMyTeamsHandler;
+use App\Team\Application\ListMyTeams\ListMyTeamsPayload;
+use App\Team\Application\ListTeamMembers\ListTeamMembersHandler;
+use App\Team\Application\ListTeamMembers\ListTeamMembersPayload;
 use App\Team\Domain\Exception\MemberAlreadyInTeamException;
 use App\Team\Domain\Exception\MemberNotFoundException;
 use App\Team\Domain\Exception\NotATeamMemberException;
 use App\Team\Domain\Exception\TeamNotFoundException;
-use App\Team\Domain\MemberId;
-use App\Team\Domain\TeamId;
-use App\Team\Domain\TeamMembershipRepositoryInterface;
 use Assert\LazyAssertionException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -32,15 +35,44 @@ final class TeamController
         try {
             $team = $handler->handle($payload);
         } catch (LazyAssertionException $e) {
-            $errors = array_map(static fn ($error) => $error->getMessage(), $e->getErrorExceptions());
-
-            return new JsonResponse(['errors' => $errors], 422);
+            return $this->validationErrorResponse($e);
         }
 
         return new JsonResponse([
             'id' => (string) $team->getId(),
             'name' => $team->getName(),
         ], 201);
+    }
+
+    public function list(ListMyTeamsHandler $handler, #[CurrentUser] SecurityUser $user): JsonResponse
+    {
+        $teams = $handler->handle(new ListMyTeamsPayload($user->getId()));
+
+        $items = array_map(
+            static fn ($team) => [
+                'id' => (string) $team->getId(),
+                'name' => $team->getName(),
+            ],
+            $teams,
+        );
+
+        return new JsonResponse($items);
+    }
+
+    public function show(GetTeamHandler $handler, #[CurrentUser] SecurityUser $user, string $teamId): JsonResponse
+    {
+        try {
+            $team = $handler->handle(new GetTeamPayload($teamId, $user->getId()));
+        } catch (TeamNotFoundException $e) {
+            return new JsonResponse(['errors' => [$e->getMessage()]], 404);
+        } catch (NotATeamMemberException $e) {
+            return new JsonResponse(['errors' => [$e->getMessage()]], 403);
+        }
+
+        return new JsonResponse([
+            'id' => (string) $team->getId(),
+            'name' => $team->getName(),
+        ]);
     }
 
     public function addMember(AddTeamMemberHandler $handler, Request $request, #[CurrentUser] SecurityUser $user, string $teamId): JsonResponse
@@ -52,9 +84,7 @@ final class TeamController
         try {
             $membership = $handler->handle($payload);
         } catch (LazyAssertionException $e) {
-            $errors = array_map(static fn ($error) => $error->getMessage(), $e->getErrorExceptions());
-
-            return new JsonResponse(['errors' => $errors], 422);
+            return $this->validationErrorResponse($e);
         } catch (TeamNotFoundException $e) {
             return new JsonResponse(['errors' => [$e->getMessage()]], 404);
         } catch (NotATeamMemberException $e) {
@@ -72,22 +102,29 @@ final class TeamController
         ], 201);
     }
 
-    public function listMembers(TeamMembershipRepositoryInterface $memberships, #[CurrentUser] SecurityUser $user, string $teamId): JsonResponse
+    public function listMembers(ListTeamMembersHandler $handler, #[CurrentUser] SecurityUser $user, string $teamId): JsonResponse
     {
-        $teamIdVo = new TeamId($teamId);
-
-        if (null === $memberships->findMembership($teamIdVo, new MemberId($user->getId()))) {
-            return new JsonResponse(['errors' => ['Only members of a team can view its members.']], 403);
+        try {
+            $memberships = $handler->handle(new ListTeamMembersPayload($teamId, $user->getId()));
+        } catch (NotATeamMemberException $e) {
+            return new JsonResponse(['errors' => [$e->getMessage()]], 403);
         }
 
-        $members = array_map(
+        $items = array_map(
             static fn ($membership) => [
                 'memberId' => (string) $membership->getMemberId(),
                 'role' => $membership->getRole()->value,
             ],
-            $memberships->findByTeamId($teamIdVo),
+            $memberships,
         );
 
-        return new JsonResponse($members);
+        return new JsonResponse($items);
+    }
+
+    private function validationErrorResponse(LazyAssertionException $e): JsonResponse
+    {
+        $errors = array_map(static fn ($error) => $error->getMessage(), $e->getErrorExceptions());
+
+        return new JsonResponse(['errors' => $errors], 422);
     }
 }

@@ -8,6 +8,6 @@ final class NotATeamMemberException extends \DomainException
 {
     public function __construct()
     {
-        parent::__construct('Only members of a team can invite new members.');
+        parent::__construct('Only members of a team can perform this action.');
     }
 }

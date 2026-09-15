@@ -3,6 +3,16 @@ team_create:
     controller: App\Team\Infrastructure\Symfony\Controllers\TeamController::create
     methods: [POST]
 
+team_list:
+    path: /api/teams
+    controller: App\Team\Infrastructure\Symfony\Controllers\TeamController::list
+    methods: [GET]
+
+team_show:
+    path: /api/teams/{teamId}
+    controller: App\Team\Infrastructure\Symfony\Controllers\TeamController::show
+    methods: [GET]
+
 team_add_member:
     path: /api/teams/{teamId}/members
     controller: App\Team\Infrastructure\Symfony\Controllers\TeamController::addMember
