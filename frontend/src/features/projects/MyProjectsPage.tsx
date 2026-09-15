@@ -1,18 +1,12 @@
-import { type FormEvent, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router'
-import { ApiError } from '../../lib/apiClient'
 import { Card } from '../../lib/Card'
-import { useCreateMyProject, useMyProjects } from './hooks'
+import { CreateProjectModal } from './CreateProjectModal'
+import { useMyProjects } from './hooks'
 
 export function MyProjectsPage() {
   const { data: projects, isLoading } = useMyProjects()
-  const createProject = useCreateMyProject()
-  const [name, setName] = useState('')
-
-  function handleSubmit(event: FormEvent) {
-    event.preventDefault()
-    createProject.mutate(name, { onSuccess: () => setName('') })
-  }
+  const [isCreating, setIsCreating] = useState(false)
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-8">
@@ -21,29 +15,14 @@ export function MyProjectsPage() {
           <h1 className="text-2xl font-semibold text-gray-900">Mes projets</h1>
           <p className="mt-1 text-sm text-gray-500">Retrouvez ici tous les projets auxquels vous participez.</p>
         </div>
-        <form onSubmit={handleSubmit} className="flex gap-2">
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Nom du nouveau projet"
-            required
-            className="w-64 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
-          />
-          <button
-            type="submit"
-            disabled={createProject.isPending}
-            className="shrink-0 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-50"
-          >
-            Nouveau projet
-          </button>
-        </form>
+        <button
+          type="button"
+          onClick={() => setIsCreating(true)}
+          className="shrink-0 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500"
+        >
+          Nouveau projet
+        </button>
       </div>
-      {createProject.isError && (
-        <p className="-mt-4 self-end text-sm text-red-600">
-          {createProject.error instanceof ApiError ? createProject.error.message : 'Erreur lors de la création'}
-        </p>
-      )}
 
       {isLoading && <p className="text-sm text-gray-500">Chargement…</p>}
 
@@ -72,6 +51,8 @@ export function MyProjectsPage() {
           </Link>
         ))}
       </div>
+
+      {isCreating && <CreateProjectModal onClose={() => setIsCreating(false)} />}
     </div>
   )
 }

@@ -31,9 +31,10 @@ export function DemoKanbanBoard({ tickets, sprints, memberDirectory }: DemoKanba
     setLocalTickets((current) => current.map((ticket) => (ticket.id === ticketId ? { ...ticket, status } : ticket)))
   }
 
-  // The demo simulates a single sprint in progress: backlog tickets (no
-  // sprint assigned) have nothing to do on a sprint board and are hidden.
-  const sprintTickets = localTickets.filter((ticket) => ticket.sprintId !== null)
+  // The demo simulates a single active sprint: backlog and past-sprint
+  // tickets have nothing to do on a sprint board and are hidden.
+  const activeSprint = sprints?.find((sprint) => sprint.status === 'active') ?? null
+  const sprintTickets = activeSprint ? localTickets.filter((ticket) => ticket.sprintId === activeSprint.id) : []
 
   const sprintNames = new Map((sprints ?? []).map((sprint) => [sprint.id, sprint.name]))
   const selectedSprintLabel = (selectedTicket?.sprintId && sprintNames.get(selectedTicket.sprintId)) || ''
@@ -42,7 +43,6 @@ export function DemoKanbanBoard({ tickets, sprints, memberDirectory }: DemoKanba
     <>
       <KanbanBoard
         tickets={sprintTickets}
-        sprints={sprints}
         memberDirectory={memberDirectory}
         onStatusChange={handleStatusChange}
         onTicketClick={setSelectedTicket}

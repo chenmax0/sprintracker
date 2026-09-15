@@ -11,6 +11,7 @@ export interface Ticket {
   status: TicketStatus
   reporterId: string
   assigneeId: string | null
+  carriedOverCount: number
 }
 
 export interface Comment {
@@ -19,6 +20,11 @@ export interface Comment {
   authorId: string
   content: string
   createdAt: string
+}
+
+export interface TicketSprintHistoryEntry {
+  sprintId: string
+  recordedAt: string
 }
 
 export function listTickets(projectId: string): Promise<Ticket[]> {
@@ -54,4 +60,8 @@ export function listComments(ticketId: string): Promise<Comment[]> {
 
 export function addComment(ticketId: string, content: string): Promise<Comment> {
   return apiClient.post(`/api/tickets/${ticketId}/comments`, { content })
+}
+
+export function getTicketSprintHistory(ticketId: string): Promise<TicketSprintHistoryEntry[]> {
+  return apiClient.get(`/api/tickets/${ticketId}/sprint-history`)
 }

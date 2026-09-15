@@ -5,6 +5,7 @@ import {
   type CreateTicketInput,
   createTicket,
   getTicket,
+  getTicketSprintHistory,
   listComments,
   listTickets,
   type Ticket,
@@ -94,4 +95,8 @@ export function useAddComment(ticketId: string) {
     mutationFn: (content: string) => addComment(ticketId, content),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tickets', ticketId, 'comments'] }),
   })
+}
+
+export function useTicketSprintHistory(ticketId: string) {
+  return useQuery({ queryKey: ['tickets', ticketId, 'sprint-history'], queryFn: () => getTicketSprintHistory(ticketId) })
 }

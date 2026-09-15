@@ -40,7 +40,7 @@ final class SqlDemoRepository implements DemoRepositoryInterface
 
         if (false !== $project) {
             $sprints = $this->connection->fetchAllAssociative(
-                'SELECT id, project_id, number, start_date, end_date FROM sprint WHERE project_id = :project_id ORDER BY number ASC',
+                'SELECT id, project_id, number, start_date, end_date, status FROM sprint WHERE project_id = :project_id ORDER BY number ASC',
                 ['project_id' => $project['id']],
             );
 

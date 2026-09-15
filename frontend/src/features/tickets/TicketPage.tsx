@@ -5,9 +5,10 @@ import { Card } from '../../lib/Card'
 import { MemberLabel } from '../../lib/MemberLabel'
 import { toMemberDirectory } from '../../lib/memberDirectory'
 import { useProject } from '../projects/hooks'
+import { useSprints } from '../sprints/hooks'
 import { useTeamMembers } from '../teams/hooks'
 import type { TicketStatus } from './api'
-import { useAddComment, useAssignTicket, useComments, useTicket } from './hooks'
+import { useAddComment, useAssignTicket, useComments, useTicket, useTicketSprintHistory } from './hooks'
 
 const STATUS_LABELS: Record<TicketStatus, string> = {
   todo: 'À faire',
@@ -32,6 +33,9 @@ export function TicketPage() {
   const assign = useAssignTicket(ticketId)
   const { data: comments } = useComments(ticketId)
   const addComment = useAddComment(ticketId)
+  const { data: sprints } = useSprints(ticket?.projectId ?? '')
+  const { data: sprintHistory } = useTicketSprintHistory(ticketId)
+  const sprintNames = new Map((sprints ?? []).map((sprint) => [sprint.id, sprint.name]))
 
   const [assigneeId, setAssigneeId] = useState('')
   const [content, setContent] = useState('')
@@ -82,6 +86,25 @@ export function TicketPage() {
           </div>
         </div>
       </Card>
+
+      {sprintHistory && sprintHistory.length > 0 && (
+        <Card title="Historique">
+          <p className="mb-3 text-sm text-gray-600">
+            Ce ticket a été reporté depuis {sprintHistory.length} sprint{sprintHistory.length > 1 ? 's' : ''} précédent
+            {sprintHistory.length > 1 ? 's' : ''}.
+          </p>
+          <ol className="flex flex-wrap items-center gap-2 text-sm text-gray-700">
+            {sprintHistory.map((entry, index) => (
+              <li key={entry.sprintId} className="flex items-center gap-2">
+                <span className="rounded bg-gray-100 px-2 py-0.5">
+                  {sprintNames.get(entry.sprintId) ?? entry.sprintId}
+                </span>
+                {index < sprintHistory.length - 1 && <span className="text-gray-300">→</span>}
+              </li>
+            ))}
+          </ol>
+        </Card>
+      )}
 
       <Card title="Réassigner">
         <form onSubmit={handleAssign} className="flex max-w-sm gap-2">

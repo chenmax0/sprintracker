@@ -15,7 +15,6 @@ import { type CSSProperties, useState } from 'react'
 import { Link } from 'react-router'
 import { MemberLabel } from '../../lib/MemberLabel'
 import type { MemberDirectory } from '../../lib/memberDirectory'
-import type { Sprint } from '../sprints/api'
 import type { Ticket, TicketStatus } from './api'
 
 const COLUMNS: { status: TicketStatus; label: string }[] = [
@@ -26,13 +25,12 @@ const COLUMNS: { status: TicketStatus; label: string }[] = [
 
 interface TicketCardContentProps {
   ticket: Ticket
-  sprintLabel: string
   memberDirectory?: MemberDirectory
   ticketHref?: (ticketId: string) => string
   onTicketClick?: (ticket: Ticket) => void
 }
 
-function TicketCardContent({ ticket, sprintLabel, memberDirectory, ticketHref, onTicketClick }: TicketCardContentProps) {
+function TicketCardContent({ ticket, memberDirectory, ticketHref, onTicketClick }: TicketCardContentProps) {
   return (
     <div className="rounded-md border border-gray-200 bg-white p-3 text-sm shadow-sm">
       {ticketHref ? (
@@ -51,7 +49,16 @@ function TicketCardContent({ ticket, sprintLabel, memberDirectory, ticketHref, o
         <span className="font-medium text-gray-900">{ticket.title}</span>
       )}
       <div className="mt-1 flex items-center justify-between text-xs text-gray-400">
-        <span>{sprintLabel}</span>
+        {ticket.carriedOverCount > 0 ? (
+          <span
+            className="rounded bg-amber-100 px-1.5 py-0.5 font-medium text-amber-700"
+            title={`Reporté depuis ${ticket.carriedOverCount} sprint(s)`}
+          >
+            ↻ {ticket.carriedOverCount}
+          </span>
+        ) : (
+          <span />
+        )}
         {ticket.assigneeId && (
           <span className="text-gray-500">
             <MemberLabel memberId={ticket.assigneeId} directory={memberDirectory} />
@@ -64,13 +71,12 @@ function TicketCardContent({ ticket, sprintLabel, memberDirectory, ticketHref, o
 
 interface DraggableTicketCardProps {
   ticket: Ticket
-  sprintLabel: string
   memberDirectory?: MemberDirectory
   ticketHref?: (ticketId: string) => string
   onTicketClick?: (ticket: Ticket) => void
 }
 
-function DraggableTicketCard({ ticket, sprintLabel, memberDirectory, ticketHref, onTicketClick }: DraggableTicketCardProps) {
+function DraggableTicketCard({ ticket, memberDirectory, ticketHref, onTicketClick }: DraggableTicketCardProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: ticket.id })
 
   const style: CSSProperties = {
@@ -87,13 +93,7 @@ function DraggableTicketCard({ ticket, sprintLabel, memberDirectory, ticketHref,
       className="cursor-grab touch-none active:cursor-grabbing"
       aria-label={`Ticket "${ticket.title}", maintenir pour déplacer`}
     >
-      <TicketCardContent
-        ticket={ticket}
-        sprintLabel={sprintLabel}
-        memberDirectory={memberDirectory}
-        ticketHref={ticketHref}
-        onTicketClick={onTicketClick}
-      />
+      <TicketCardContent ticket={ticket} memberDirectory={memberDirectory} ticketHref={ticketHref} onTicketClick={onTicketClick} />
     </div>
   )
 }
@@ -102,13 +102,12 @@ interface ColumnProps {
   status: TicketStatus
   label: string
   tickets: Ticket[]
-  sprintNames: Map<string, string>
   memberDirectory?: MemberDirectory
   ticketHref?: (ticketId: string) => string
   onTicketClick?: (ticket: Ticket) => void
 }
 
-function Column({ status, label, tickets, sprintNames, memberDirectory, ticketHref, onTicketClick }: ColumnProps) {
+function Column({ status, label, tickets, memberDirectory, ticketHref, onTicketClick }: ColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id: status })
 
   return (
@@ -126,7 +125,6 @@ function Column({ status, label, tickets, sprintNames, memberDirectory, ticketHr
           <DraggableTicketCard
             key={ticket.id}
             ticket={ticket}
-            sprintLabel={(ticket.sprintId && sprintNames.get(ticket.sprintId)) || 'Backlog'}
             memberDirectory={memberDirectory}
             ticketHref={ticketHref}
             onTicketClick={onTicketClick}
@@ -139,7 +137,6 @@ function Column({ status, label, tickets, sprintNames, memberDirectory, ticketHr
 
 interface KanbanBoardProps {
   tickets: Ticket[]
-  sprints?: Sprint[]
   memberDirectory?: MemberDirectory
   ticketHref?: (ticketId: string) => string
   onTicketClick?: (ticket: Ticket) => void
@@ -153,17 +150,8 @@ interface KanbanBoardProps {
  * is persisted (real projects) or kept in local-only state (read-only demo)
  * is entirely up to the caller.
  */
-export function KanbanBoard({
-  tickets,
-  sprints,
-  memberDirectory,
-  ticketHref,
-  onTicketClick,
-  onStatusChange,
-  errorMessage,
-}: KanbanBoardProps) {
+export function KanbanBoard({ tickets, memberDirectory, ticketHref, onTicketClick, onStatusChange, errorMessage }: KanbanBoardProps) {
   const [activeTicket, setActiveTicket] = useState<Ticket | null>(null)
-  const sprintNames = new Map((sprints ?? []).map((sprint) => [sprint.id, sprint.name]))
 
   // The whole card is the drag surface (see DraggableTicketCard), so pointer
   // needs a movement threshold: a plain click/tap without holding still opens
@@ -209,7 +197,6 @@ export function KanbanBoard({
               status={column.status}
               label={column.label}
               tickets={tickets.filter((ticket) => ticket.status === column.status)}
-              sprintNames={sprintNames}
               memberDirectory={memberDirectory}
               ticketHref={ticketHref}
               onTicketClick={onTicketClick}
@@ -218,12 +205,7 @@ export function KanbanBoard({
         </div>
         <DragOverlay>
           {activeTicket && (
-            <TicketCardContent
-              ticket={activeTicket}
-              sprintLabel={(activeTicket.sprintId && sprintNames.get(activeTicket.sprintId)) || 'Backlog'}
-              memberDirectory={memberDirectory}
-              ticketHref={ticketHref}
-            />
+            <TicketCardContent ticket={activeTicket} memberDirectory={memberDirectory} ticketHref={ticketHref} />
           )}
         </DragOverlay>
       </DndContext>

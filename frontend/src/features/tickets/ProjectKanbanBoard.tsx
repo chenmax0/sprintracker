@@ -1,6 +1,5 @@
 import { ApiError } from '../../lib/apiClient'
 import type { MemberDirectory } from '../../lib/memberDirectory'
-import type { Sprint } from '../sprints/api'
 import type { Ticket } from './api'
 import { useUpdateTicketStatus } from './hooks'
 import { KanbanBoard } from './KanbanBoard'
@@ -12,17 +11,15 @@ import { KanbanBoard } from './KanbanBoard'
 interface ProjectKanbanBoardProps {
   projectId: string
   tickets: Ticket[]
-  sprints?: Sprint[]
   memberDirectory: MemberDirectory
 }
 
-export function ProjectKanbanBoard({ projectId, tickets, sprints, memberDirectory }: ProjectKanbanBoardProps) {
+export function ProjectKanbanBoard({ projectId, tickets, memberDirectory }: ProjectKanbanBoardProps) {
   const updateStatus = useUpdateTicketStatus(projectId)
 
   return (
     <KanbanBoard
       tickets={tickets}
-      sprints={sprints}
       memberDirectory={memberDirectory}
       ticketHref={(ticketId) => `/tickets/${ticketId}`}
       onStatusChange={(ticketId, status) => updateStatus.mutate({ ticketId, status })}
