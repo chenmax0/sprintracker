@@ -14,4 +14,9 @@ interface SprintRepositoryInterface
      * The next sprint number for a project (1 for its first sprint).
      */
     public function nextSprintNumber(ProjectId $projectId): int;
+
+    /**
+     * @return list<Sprint>
+     */
+    public function findByProjectId(ProjectId $projectId): array;
 }
