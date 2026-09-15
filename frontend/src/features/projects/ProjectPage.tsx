@@ -27,6 +27,8 @@ export function ProjectPage() {
 
   const activeSprint = sprints?.find((sprint) => sprint.status === 'active') ?? null
   const sprintTickets = activeSprint ? (tickets ?? []).filter((ticket) => ticket.sprintId === activeSprint.id) : []
+  const doneCount = sprintTickets.filter((ticket) => ticket.status === 'done').length
+  const progress = sprintTickets.length > 0 ? Math.round((doneCount / sprintTickets.length) * 100) : 0
 
   return (
     <div className="flex flex-col gap-8">
@@ -55,11 +57,19 @@ export function ProjectPage() {
         <Card>
           {activeSprint ? (
             <div className="flex flex-wrap items-center justify-between gap-4">
-              <div>
+              <div className="min-w-48">
                 <p className="text-sm font-semibold text-gray-900">{activeSprint.name}</p>
                 <p className="text-xs text-gray-500">
                   {activeSprint.startDate} → {activeSprint.endDate}
                 </p>
+                <div className="mt-2 flex items-center gap-2">
+                  <div className="h-1.5 w-32 overflow-hidden rounded-full bg-gray-100">
+                    <div className="h-full rounded-full bg-indigo-600 transition-all" style={{ width: `${progress}%` }} />
+                  </div>
+                  <span className="text-xs text-gray-500">
+                    {doneCount}/{sprintTickets.length} terminés
+                  </span>
+                </div>
               </div>
               <div className="flex gap-2">
                 <button
