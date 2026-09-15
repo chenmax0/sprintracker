@@ -65,4 +65,20 @@ class ListAndGetProjectActionTest extends WebTestCase
 
         self::assertResponseStatusCodeSame(404);
     }
+
+    public function testListMineReturnsProjectsAcrossAllOfTheMembersTeams(): void
+    {
+        $ownerToken = $this->registerAndLogin('jane@example.com');
+        $outsiderToken = $this->registerAndLogin('charlie@example.com');
+        $this->createTeamAndProject($ownerToken);
+        $this->createTeamAndProject($ownerToken);
+        $this->createTeamAndProject($outsiderToken);
+
+        $this->client->request('GET', '/api/projects', server: ['HTTP_AUTHORIZATION' => 'Bearer '.$ownerToken]);
+
+        self::assertResponseStatusCodeSame(200);
+        $projects = json_decode($this->client->getResponse()->getContent(), true);
+        self::assertCount(2, $projects);
+        self::assertArrayHasKey('teamName', $projects[0]);
+    }
 }

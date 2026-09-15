@@ -76,6 +76,9 @@ services:
     App\Project\Application\Port\TeamMembershipCheckerInterface:
         alias: App\Project\Infrastructure\Persistence\Sql\SqlTeamMembershipChecker
 
+    App\Project\Application\Port\MyProjectsQueryInterface:
+        alias: App\Project\Infrastructure\Persistence\Sql\SqlMyProjectsQuery
+
     App\Sprint\Domain\SprintRepositoryInterface:
         alias: App\Sprint\Infrastructure\Persistence\Sql\SqlSprintRepository
 

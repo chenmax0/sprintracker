@@ -8,6 +8,11 @@ project_list:
     controller: App\Project\Infrastructure\Symfony\Controllers\ProjectController::list
     methods: [GET]
 
+project_list_mine:
+    path: /api/projects
+    controller: App\Project\Infrastructure\Symfony\Controllers\ProjectController::listMine
+    methods: [GET]
+
 project_show:
     path: /api/projects/{projectId}
     controller: App\Project\Infrastructure\Symfony\Controllers\ProjectController::show

@@ -9,6 +9,9 @@ use App\Project\Application\CreateProject\CreateProjectHandler;
 use App\Project\Application\CreateProject\CreateProjectPayload;
 use App\Project\Application\GetProject\GetProjectHandler;
 use App\Project\Application\GetProject\GetProjectPayload;
+use App\Project\Application\ListMyProjects\ListMyProjectsHandler;
+use App\Project\Application\ListMyProjects\ListMyProjectsPayload;
+use App\Project\Application\ListMyProjects\MyProjectView;
 use App\Project\Application\ListProjects\ListProjectsHandler;
 use App\Project\Application\ListProjects\ListProjectsPayload;
 use App\Project\Domain\Exception\NotATeamMemberException;
@@ -51,6 +54,13 @@ final class ProjectController
         return new JsonResponse(array_map($this->serializeProject(...), $projects));
     }
 
+    public function listMine(ListMyProjectsHandler $handler, #[CurrentUser] SecurityUser $user): JsonResponse
+    {
+        $projects = $handler->handle(new ListMyProjectsPayload($user->getId()));
+
+        return new JsonResponse(array_map($this->serializeMyProject(...), $projects));
+    }
+
     public function show(GetProjectHandler $handler, #[CurrentUser] SecurityUser $user, string $projectId): JsonResponse
     {
         try {
@@ -70,6 +80,16 @@ final class ProjectController
             'id' => (string) $project->getId(),
             'teamId' => (string) $project->getTeamId(),
             'name' => $project->getName(),
+        ];
+    }
+
+    private function serializeMyProject(MyProjectView $project): array
+    {
+        return [
+            'id' => $project->id,
+            'teamId' => $project->teamId,
+            'teamName' => $project->teamName,
+            'name' => $project->name,
         ];
     }
 
