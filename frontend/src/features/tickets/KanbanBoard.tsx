@@ -24,19 +24,15 @@ const COLUMNS: { status: TicketStatus; label: string }[] = [
   { status: 'done', label: 'Terminé' },
 ]
 
-function TicketCardContent({
-  ticket,
-  sprintLabel,
-  memberDirectory,
-  ticketHref,
-  onTicketClick,
-}: {
+interface TicketCardContentProps {
   ticket: Ticket
   sprintLabel: string
   memberDirectory?: MemberDirectory
   ticketHref?: (ticketId: string) => string
   onTicketClick?: (ticket: Ticket) => void
-}) {
+}
+
+function TicketCardContent({ ticket, sprintLabel, memberDirectory, ticketHref, onTicketClick }: TicketCardContentProps) {
   return (
     <div className="rounded-md border border-gray-200 bg-white p-3 text-sm shadow-sm">
       {ticketHref ? (
@@ -66,19 +62,15 @@ function TicketCardContent({
   )
 }
 
-function DraggableTicketCard({
-  ticket,
-  sprintLabel,
-  memberDirectory,
-  ticketHref,
-  onTicketClick,
-}: {
+interface DraggableTicketCardProps {
   ticket: Ticket
   sprintLabel: string
   memberDirectory?: MemberDirectory
   ticketHref?: (ticketId: string) => string
   onTicketClick?: (ticket: Ticket) => void
-}) {
+}
+
+function DraggableTicketCard({ ticket, sprintLabel, memberDirectory, ticketHref, onTicketClick }: DraggableTicketCardProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: ticket.id })
 
   const style: CSSProperties = {
@@ -106,15 +98,7 @@ function DraggableTicketCard({
   )
 }
 
-function Column({
-  status,
-  label,
-  tickets,
-  sprintNames,
-  memberDirectory,
-  ticketHref,
-  onTicketClick,
-}: {
+interface ColumnProps {
   status: TicketStatus
   label: string
   tickets: Ticket[]
@@ -122,7 +106,9 @@ function Column({
   memberDirectory?: MemberDirectory
   ticketHref?: (ticketId: string) => string
   onTicketClick?: (ticket: Ticket) => void
-}) {
+}
+
+function Column({ status, label, tickets, sprintNames, memberDirectory, ticketHref, onTicketClick }: ColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id: status })
 
   return (
@@ -146,10 +132,19 @@ function Column({
             onTicketClick={onTicketClick}
           />
         ))}
-        {tickets.length === 0 && <p className="px-1 text-xs text-gray-400">Aucun ticket</p>}
       </div>
     </div>
   )
+}
+
+interface KanbanBoardProps {
+  tickets: Ticket[]
+  sprints?: Sprint[]
+  memberDirectory?: MemberDirectory
+  ticketHref?: (ticketId: string) => string
+  onTicketClick?: (ticket: Ticket) => void
+  onStatusChange: (ticketId: string, status: TicketStatus) => void
+  errorMessage?: string | null
 }
 
 /**
@@ -166,15 +161,7 @@ export function KanbanBoard({
   onTicketClick,
   onStatusChange,
   errorMessage,
-}: {
-  tickets: Ticket[]
-  sprints?: Sprint[]
-  memberDirectory?: MemberDirectory
-  ticketHref?: (ticketId: string) => string
-  onTicketClick?: (ticket: Ticket) => void
-  onStatusChange: (ticketId: string, status: TicketStatus) => void
-  errorMessage?: string | null
-}) {
+}: KanbanBoardProps) {
   const [activeTicket, setActiveTicket] = useState<Ticket | null>(null)
   const sprintNames = new Map((sprints ?? []).map((sprint) => [sprint.id, sprint.name]))
 

@@ -41,6 +41,11 @@ export function useAssignTicket(ticketId: string) {
   })
 }
 
+interface UpdateTicketStatusInput {
+  ticketId: string
+  status: TicketStatus
+}
+
 /**
  * Optimistic status update, for the kanban board's drag-and-drop: the card
  * must move immediately on drop, not wait for the round-trip. Rolls back to
@@ -51,8 +56,7 @@ export function useUpdateTicketStatus(projectId: string) {
   const queryKey = ['projects', projectId, 'tickets']
 
   return useMutation({
-    mutationFn: ({ ticketId, status }: { ticketId: string; status: TicketStatus }) =>
-      updateTicketStatus(ticketId, status),
+    mutationFn: ({ ticketId, status }: UpdateTicketStatusInput) => updateTicketStatus(ticketId, status),
     onMutate: async ({ ticketId, status }) => {
       await queryClient.cancelQueries({ queryKey })
       const previousTickets = queryClient.getQueryData<Ticket[]>(queryKey)

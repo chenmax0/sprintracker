@@ -9,17 +9,14 @@ import { KanbanBoard } from './KanbanBoard'
  * Wires the presentational KanbanBoard to a real project: status changes are
  * persisted via useUpdateTicketStatus (optimistic, with rollback on error).
  */
-export function ProjectKanbanBoard({
-  projectId,
-  tickets,
-  sprints,
-  memberDirectory,
-}: {
+interface ProjectKanbanBoardProps {
   projectId: string
   tickets: Ticket[]
   sprints?: Sprint[]
   memberDirectory: MemberDirectory
-}) {
+}
+
+export function ProjectKanbanBoard({ projectId, tickets, sprints, memberDirectory }: ProjectKanbanBoardProps) {
   const updateStatus = useUpdateTicketStatus(projectId)
 
   return (

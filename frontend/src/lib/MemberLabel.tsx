@@ -1,7 +1,12 @@
 import { useMe } from '../features/auth/hooks'
 import type { MemberDirectory } from './memberDirectory'
 
-export function MemberLabel({ memberId, directory }: { memberId: string; directory?: MemberDirectory }) {
+interface MemberLabelProps {
+  memberId: string
+  directory?: MemberDirectory
+}
+
+export function MemberLabel({ memberId, directory }: MemberLabelProps) {
   const { data: me } = useMe()
   const member = directory?.get(memberId)
   const isMe = me?.id === memberId

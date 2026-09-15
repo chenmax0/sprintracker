@@ -11,15 +11,13 @@ import { DemoTicketModal } from './DemoTicketModal'
  * are kept in local component state only, reset whenever a fresh snapshot
  * loads, so visitors can try the board without affecting the shared demo data.
  */
-export function DemoKanbanBoard({
-  tickets,
-  sprints,
-  memberDirectory,
-}: {
+interface DemoKanbanBoardProps {
   tickets: Ticket[]
   sprints?: Sprint[]
   memberDirectory?: MemberDirectory
-}) {
+}
+
+export function DemoKanbanBoard({ tickets, sprints, memberDirectory }: DemoKanbanBoardProps) {
   const [syncedTickets, setSyncedTickets] = useState(tickets)
   const [localTickets, setLocalTickets] = useState(tickets)
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null)

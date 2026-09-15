@@ -13,19 +13,29 @@ export function useMe() {
   })
 }
 
+interface LoginInput {
+  email: string
+  password: string
+}
+
 export function useLogin() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ email, password }: { email: string; password: string }) => login(email, password),
+    mutationFn: ({ email, password }: LoginInput) => login(email, password),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: meQueryKey }),
   })
 }
 
+interface RegisterInput {
+  email: string
+  name: string
+  password: string
+}
+
 export function useRegister() {
   return useMutation({
-    mutationFn: ({ email, name, password }: { email: string; name: string; password: string }) =>
-      register(email, name, password),
+    mutationFn: ({ email, name, password }: RegisterInput) => register(email, name, password),
   })
 }
 

@@ -9,17 +9,14 @@ const STATUS_LABELS: Record<Ticket['status'], string> = {
   done: 'Terminé',
 }
 
-export function DemoTicketModal({
-  ticket,
-  sprintLabel,
-  memberDirectory,
-  onClose,
-}: {
+interface DemoTicketModalProps {
   ticket: Ticket
   sprintLabel: string
   memberDirectory?: MemberDirectory
   onClose: () => void
-}) {
+}
+
+export function DemoTicketModal({ ticket, sprintLabel, memberDirectory, onClose }: DemoTicketModalProps) {
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
