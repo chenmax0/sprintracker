@@ -18,9 +18,6 @@ final class TeamMembership
         return new self($teamId, $memberId, $role);
     }
 
-    /**
-     * Reconstitutes a TeamMembership from persisted data. Only the persistence layer should call this.
-     */
     public static function fromPersistence(TeamId $teamId, MemberId $memberId, MemberRole $role): self
     {
         return new self($teamId, $memberId, $role);

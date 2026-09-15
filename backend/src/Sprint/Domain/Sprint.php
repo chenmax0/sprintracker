@@ -30,9 +30,6 @@ final class Sprint
         return new self($id, $projectId, $number, $startDate, $endDate);
     }
 
-    /**
-     * Reconstitutes a Sprint from persisted data. Only the persistence layer should call this.
-     */
     public static function fromPersistence(
         SprintId $id,
         ProjectId $projectId,

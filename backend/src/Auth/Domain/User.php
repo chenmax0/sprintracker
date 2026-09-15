@@ -24,8 +24,6 @@ class User
     }
 
     /**
-     * Reconstitutes a User from persisted data. Only the persistence layer should call this.
-     *
      * @param list<string> $roles
      */
     public static function fromPersistence(UserId $id, Email $email, string $name, string $hashedPassword, array $roles): self

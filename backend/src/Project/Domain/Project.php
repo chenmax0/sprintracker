@@ -18,9 +18,6 @@ final class Project
         return new self($id, $teamId, $name);
     }
 
-    /**
-     * Reconstitutes a Project from persisted data. Only the persistence layer should call this.
-     */
     public static function fromPersistence(ProjectId $id, TeamId $teamId, string $name): self
     {
         return new self($id, $teamId, $name);

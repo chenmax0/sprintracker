@@ -30,9 +30,6 @@ final class Ticket
         return new self($id, $projectId, $sprintId, $title, $description, TicketStatus::Todo, $reporterId, $assigneeId);
     }
 
-    /**
-     * Reconstitutes a Ticket from persisted data. Only the persistence layer should call this.
-     */
     public static function fromPersistence(
         TicketId $id,
         ProjectId $projectId,

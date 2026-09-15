@@ -20,9 +20,6 @@ final class Comment
         return new self($id, $ticketId, $authorId, $content, new \DateTimeImmutable());
     }
 
-    /**
-     * Reconstitutes a Comment from persisted data. Only the persistence layer should call this.
-     */
     public static function fromPersistence(
         CommentId $id,
         TicketId $ticketId,
