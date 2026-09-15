@@ -33,7 +33,7 @@ export function TicketPage() {
   }
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="mx-auto flex max-w-4xl flex-col gap-8">
       <div>
         {ticket && (
           <Link to={`/projects/${ticket.projectId}`} className="text-sm text-indigo-600 hover:underline">

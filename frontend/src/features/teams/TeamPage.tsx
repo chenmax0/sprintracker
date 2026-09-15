@@ -31,7 +31,7 @@ export function TeamPage() {
   }
 
   return (
-    <div className="flex flex-col gap-10">
+    <div className="mx-auto flex max-w-4xl flex-col gap-10">
       <div>
         <Link to="/" className="text-sm text-indigo-600 hover:underline">
           ← Mes équipes

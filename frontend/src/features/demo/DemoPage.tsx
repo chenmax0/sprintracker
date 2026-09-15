@@ -36,12 +36,12 @@ export function DemoPage() {
         </div>
       </div>
 
-      <main className="mx-auto max-w-4xl px-6 py-8">
-        {isLoading && <p className="text-gray-500">Chargement…</p>}
+      <main className="px-6 py-8">
+        {isLoading && <p className="mx-auto max-w-4xl text-gray-500">Chargement…</p>}
 
         {data?.project && (
           <>
-            <h1 className="mb-8 text-xl font-semibold text-gray-900">{data.project.name}</h1>
+            <h1 className="mx-auto mb-8 max-w-4xl text-xl font-semibold text-gray-900">{data.project.name}</h1>
 
             <DemoKanbanBoard tickets={data.tickets} sprints={data.sprints} />
           </>
