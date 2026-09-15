@@ -17,6 +17,8 @@ use App\Ticket\Application\ListComments\ListCommentsHandler;
 use App\Ticket\Application\ListComments\ListCommentsPayload;
 use App\Ticket\Application\ListTickets\ListTicketsHandler;
 use App\Ticket\Application\ListTickets\ListTicketsPayload;
+use App\Ticket\Application\UpdateTicketStatus\UpdateTicketStatusHandler;
+use App\Ticket\Application\UpdateTicketStatus\UpdateTicketStatusPayload;
 use App\Ticket\Domain\Comment;
 use App\Ticket\Domain\Exception\AssigneeNotAProjectMemberException;
 use App\Ticket\Domain\Exception\NotAProjectMemberException;
@@ -96,6 +98,25 @@ final class TicketController
             return new JsonResponse(['errors' => [$e->getMessage()]], 403);
         } catch (AssigneeNotAProjectMemberException $e) {
             return new JsonResponse(['errors' => [$e->getMessage()]], 422);
+        }
+
+        return new JsonResponse($this->serializeTicket($ticket));
+    }
+
+    public function updateStatus(UpdateTicketStatusHandler $handler, Request $request, #[CurrentUser] SecurityUser $user, string $ticketId): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true) ?? [];
+
+        $payload = new UpdateTicketStatusPayload($ticketId, $user->getId(), $data['status'] ?? '');
+
+        try {
+            $ticket = $handler->handle($payload);
+        } catch (LazyAssertionException $e) {
+            return $this->validationErrorResponse($e);
+        } catch (TicketNotFoundException $e) {
+            return new JsonResponse(['errors' => [$e->getMessage()]], 404);
+        } catch (NotAProjectMemberException $e) {
+            return new JsonResponse(['errors' => [$e->getMessage()]], 403);
         }
 
         return new JsonResponse($this->serializeTicket($ticket));

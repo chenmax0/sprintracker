@@ -18,6 +18,11 @@ ticket_assign:
     controller: App\Ticket\Infrastructure\Symfony\Controllers\TicketController::assign
     methods: [POST]
 
+ticket_update_status:
+    path: /api/tickets/{ticketId}/status
+    controller: App\Ticket\Infrastructure\Symfony\Controllers\TicketController::updateStatus
+    methods: [PATCH]
+
 ticket_add_comment:
     path: /api/tickets/{ticketId}/comments
     controller: App\Ticket\Infrastructure\Symfony\Controllers\TicketController::addComment

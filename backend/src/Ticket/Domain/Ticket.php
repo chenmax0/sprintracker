@@ -48,6 +48,11 @@ final class Ticket
         $this->assigneeId = $assigneeId;
     }
 
+    public function changeStatus(TicketStatus $status): void
+    {
+        $this->status = $status;
+    }
+
     public function getId(): TicketId
     {
         return $this->id;
