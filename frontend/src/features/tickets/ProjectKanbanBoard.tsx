@@ -12,16 +12,17 @@ interface ProjectKanbanBoardProps {
   projectId: string
   tickets: Ticket[]
   memberDirectory: MemberDirectory
+  onTicketClick: (ticket: Ticket) => void
 }
 
-export function ProjectKanbanBoard({ projectId, tickets, memberDirectory }: ProjectKanbanBoardProps) {
+export function ProjectKanbanBoard({ projectId, tickets, memberDirectory, onTicketClick }: ProjectKanbanBoardProps) {
   const updateStatus = useUpdateTicketStatus(projectId)
 
   return (
     <KanbanBoard
       tickets={tickets}
       memberDirectory={memberDirectory}
-      ticketHref={(ticketId) => `/tickets/${ticketId}`}
+      onTicketClick={onTicketClick}
       onStatusChange={(ticketId, status) => updateStatus.mutate({ ticketId, status })}
       errorMessage={
         updateStatus.isError

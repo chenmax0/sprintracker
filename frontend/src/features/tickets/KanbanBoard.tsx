@@ -35,6 +35,7 @@ function TicketCardContent({ ticket, memberDirectory, ticketHref, onTicketClick 
     <div className="rounded-md border border-gray-200 bg-white p-3 text-sm shadow-sm">
       {ticketHref ? (
         <Link to={ticketHref(ticket.id)} className="font-medium text-gray-900 hover:underline">
+          <span className="mr-1 font-normal text-gray-400">#{ticket.number}</span>
           {ticket.title}
         </Link>
       ) : onTicketClick ? (
@@ -43,10 +44,14 @@ function TicketCardContent({ ticket, memberDirectory, ticketHref, onTicketClick 
           onClick={() => onTicketClick(ticket)}
           className="text-left font-medium text-gray-900 hover:underline"
         >
+          <span className="mr-1 font-normal text-gray-400">#{ticket.number}</span>
           {ticket.title}
         </button>
       ) : (
-        <span className="font-medium text-gray-900">{ticket.title}</span>
+        <span className="font-medium text-gray-900">
+          <span className="mr-1 font-normal text-gray-400">#{ticket.number}</span>
+          {ticket.title}
+        </span>
       )}
       <div className="mt-1 flex items-center justify-between text-xs text-gray-400">
         {ticket.carriedOverCount > 0 ? (

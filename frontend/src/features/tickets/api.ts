@@ -4,6 +4,7 @@ export type TicketStatus = 'todo' | 'in_progress' | 'done'
 
 export interface Ticket {
   id: string
+  number: number
   projectId: string
   sprintId: string | null
   title: string

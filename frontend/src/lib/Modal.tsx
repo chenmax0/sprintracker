@@ -1,5 +1,5 @@
-import { useEffect } from 'react'
 import type { ReactNode } from 'react'
+import { useEscapeKey } from './useEscapeKey'
 
 interface ModalProps {
   title: string
@@ -8,16 +8,7 @@ interface ModalProps {
 }
 
 export function Modal({ title, onClose, children }: ModalProps) {
-  useEffect(() => {
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') {
-        onClose()
-      }
-    }
-
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [onClose])
+  useEscapeKey(onClose)
 
   return (
     <div

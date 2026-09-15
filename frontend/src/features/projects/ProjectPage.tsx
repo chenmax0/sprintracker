@@ -9,6 +9,7 @@ import { useTeamMembers } from '../teams/hooks'
 import { CreateTicketModal } from '../tickets/CreateTicketModal'
 import { useTickets } from '../tickets/hooks'
 import { ProjectKanbanBoard } from '../tickets/ProjectKanbanBoard'
+import { TicketPanel } from '../tickets/TicketPanel'
 import { useProject } from './hooks'
 
 export function ProjectPage() {
@@ -24,11 +25,16 @@ export function ProjectPage() {
   const [showMembers, setShowMembers] = useState(false)
   const [showCreateTicket, setShowCreateTicket] = useState(false)
   const [sprintModal, setSprintModal] = useState<'launch' | 'complete' | null>(null)
+  const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null)
+  const [assigneeFilter, setAssigneeFilter] = useState('')
 
   const activeSprint = sprints?.find((sprint) => sprint.status === 'active') ?? null
   const sprintTickets = activeSprint ? (tickets ?? []).filter((ticket) => ticket.sprintId === activeSprint.id) : []
   const doneCount = sprintTickets.filter((ticket) => ticket.status === 'done').length
   const progress = sprintTickets.length > 0 ? Math.round((doneCount / sprintTickets.length) * 100) : 0
+  const boardTickets = assigneeFilter
+    ? sprintTickets.filter((ticket) => ticket.assigneeId === assigneeFilter)
+    : sprintTickets
 
   return (
     <div className="flex flex-col gap-8">
@@ -104,7 +110,28 @@ export function ProjectPage() {
       </div>
 
       {activeSprint ? (
-        <ProjectKanbanBoard projectId={projectId} tickets={sprintTickets} memberDirectory={memberDirectory} />
+        <div className="flex flex-col gap-3">
+          <div className="flex justify-center">
+            <select
+              value={assigneeFilter}
+              onChange={(e) => setAssigneeFilter(e.target.value)}
+              className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 focus:border-indigo-500 focus:outline-none"
+            >
+              <option value="">Tous les membres</option>
+              {members?.map((member) => (
+                <option key={member.memberId} value={member.memberId}>
+                  {member.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <ProjectKanbanBoard
+            projectId={projectId}
+            tickets={boardTickets}
+            memberDirectory={memberDirectory}
+            onTicketClick={(ticket) => setSelectedTicketId(ticket.id)}
+          />
+        </div>
       ) : (
         <p className="text-center text-sm text-gray-400">Lancez un sprint pour voir apparaître le board.</p>
       )}
@@ -114,6 +141,7 @@ export function ProjectPage() {
         <CreateTicketModal
           projectId={projectId}
           activeSprintId={activeSprint?.id ?? null}
+          members={members ?? []}
           onClose={() => setShowCreateTicket(false)}
         />
       )}
@@ -124,6 +152,7 @@ export function ProjectPage() {
           onClose={() => setSprintModal(null)}
         />
       )}
+      {selectedTicketId && <TicketPanel ticketId={selectedTicketId} onClose={() => setSelectedTicketId(null)} />}
     </div>
   )
 }
