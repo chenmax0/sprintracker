@@ -59,6 +59,16 @@ final class SqlTicketRepository implements TicketRepositoryInterface
         );
     }
 
+    public function findByProjectId(ProjectId $projectId): array
+    {
+        $rows = $this->connection->fetchAllAssociative(
+            'SELECT id, project_id, sprint_id, title, description, status, reporter_id, assignee_id FROM ticket WHERE project_id = :project_id',
+            ['project_id' => (string) $projectId],
+        );
+
+        return array_map(fn (array $row) => $this->hydrate($row), $rows);
+    }
+
     private function hydrate(array $row): Ticket
     {
         return Ticket::fromPersistence(

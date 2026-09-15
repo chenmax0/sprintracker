@@ -3,6 +3,16 @@ ticket_create:
     controller: App\Ticket\Infrastructure\Symfony\Controllers\TicketController::create
     methods: [POST]
 
+ticket_list:
+    path: /api/projects/{projectId}/tickets
+    controller: App\Ticket\Infrastructure\Symfony\Controllers\TicketController::list
+    methods: [GET]
+
+ticket_show:
+    path: /api/tickets/{ticketId}
+    controller: App\Ticket\Infrastructure\Symfony\Controllers\TicketController::show
+    methods: [GET]
+
 ticket_assign:
     path: /api/tickets/{ticketId}/assign
     controller: App\Ticket\Infrastructure\Symfony\Controllers\TicketController::assign

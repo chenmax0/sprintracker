@@ -11,14 +11,18 @@ use App\Ticket\Application\AssignTicket\AssignTicketHandler;
 use App\Ticket\Application\AssignTicket\AssignTicketPayload;
 use App\Ticket\Application\CreateTicket\CreateTicketHandler;
 use App\Ticket\Application\CreateTicket\CreateTicketPayload;
+use App\Ticket\Application\GetTicket\GetTicketHandler;
+use App\Ticket\Application\GetTicket\GetTicketPayload;
+use App\Ticket\Application\ListComments\ListCommentsHandler;
+use App\Ticket\Application\ListComments\ListCommentsPayload;
+use App\Ticket\Application\ListTickets\ListTicketsHandler;
+use App\Ticket\Application\ListTickets\ListTicketsPayload;
 use App\Ticket\Domain\Comment;
-use App\Ticket\Domain\CommentRepositoryInterface;
 use App\Ticket\Domain\Exception\AssigneeNotAProjectMemberException;
 use App\Ticket\Domain\Exception\NotAProjectMemberException;
 use App\Ticket\Domain\Exception\SprintNotInProjectException;
 use App\Ticket\Domain\Exception\TicketNotFoundException;
 use App\Ticket\Domain\Ticket;
-use App\Ticket\Domain\TicketId;
 use Assert\LazyAssertionException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -50,6 +54,30 @@ final class TicketController
         }
 
         return new JsonResponse($this->serializeTicket($ticket), 201);
+    }
+
+    public function list(ListTicketsHandler $handler, #[CurrentUser] SecurityUser $user, string $projectId): JsonResponse
+    {
+        try {
+            $tickets = $handler->handle(new ListTicketsPayload($projectId, $user->getId()));
+        } catch (NotAProjectMemberException $e) {
+            return new JsonResponse(['errors' => [$e->getMessage()]], 403);
+        }
+
+        return new JsonResponse(array_map($this->serializeTicket(...), $tickets));
+    }
+
+    public function show(GetTicketHandler $handler, #[CurrentUser] SecurityUser $user, string $ticketId): JsonResponse
+    {
+        try {
+            $ticket = $handler->handle(new GetTicketPayload($ticketId, $user->getId()));
+        } catch (TicketNotFoundException $e) {
+            return new JsonResponse(['errors' => [$e->getMessage()]], 404);
+        } catch (NotAProjectMemberException $e) {
+            return new JsonResponse(['errors' => [$e->getMessage()]], 403);
+        }
+
+        return new JsonResponse($this->serializeTicket($ticket));
     }
 
     public function assign(AssignTicketHandler $handler, Request $request, #[CurrentUser] SecurityUser $user, string $ticketId): JsonResponse
@@ -89,28 +117,20 @@ final class TicketController
             return new JsonResponse(['errors' => [$e->getMessage()]], 403);
         }
 
-        return new JsonResponse([
-            'id' => (string) $comment->getId(),
-            'ticketId' => (string) $comment->getTicketId(),
-            'authorId' => (string) $comment->getAuthorId(),
-            'content' => $comment->getContent(),
-            'createdAt' => $comment->getCreatedAt()->format(\DateTimeInterface::ATOM),
-        ], 201);
+        return new JsonResponse($this->serializeComment($comment), 201);
     }
 
-    public function listComments(CommentRepositoryInterface $comments, string $ticketId): JsonResponse
+    public function listComments(ListCommentsHandler $handler, #[CurrentUser] SecurityUser $user, string $ticketId): JsonResponse
     {
-        $items = array_map(
-            static fn (Comment $comment) => [
-                'id' => (string) $comment->getId(),
-                'authorId' => (string) $comment->getAuthorId(),
-                'content' => $comment->getContent(),
-                'createdAt' => $comment->getCreatedAt()->format(\DateTimeInterface::ATOM),
-            ],
-            $comments->findByTicketId(new TicketId($ticketId)),
-        );
+        try {
+            $comments = $handler->handle(new ListCommentsPayload($ticketId, $user->getId()));
+        } catch (TicketNotFoundException $e) {
+            return new JsonResponse(['errors' => [$e->getMessage()]], 404);
+        } catch (NotAProjectMemberException $e) {
+            return new JsonResponse(['errors' => [$e->getMessage()]], 403);
+        }
 
-        return new JsonResponse($items);
+        return new JsonResponse(array_map($this->serializeComment(...), $comments));
     }
 
     private function serializeTicket(Ticket $ticket): array
@@ -124,6 +144,17 @@ final class TicketController
             'status' => $ticket->getStatus()->value,
             'reporterId' => (string) $ticket->getReporterId(),
             'assigneeId' => null !== $ticket->getAssigneeId() ? (string) $ticket->getAssigneeId() : null,
+        ];
+    }
+
+    private function serializeComment(Comment $comment): array
+    {
+        return [
+            'id' => (string) $comment->getId(),
+            'ticketId' => (string) $comment->getTicketId(),
+            'authorId' => (string) $comment->getAuthorId(),
+            'content' => $comment->getContent(),
+            'createdAt' => $comment->getCreatedAt()->format(\DateTimeInterface::ATOM),
         ];
     }
 

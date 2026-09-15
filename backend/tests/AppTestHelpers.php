@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Tests\Ticket\Infrastructure\Symfony\Controllers;
+namespace App\Tests;
 
 use App\Auth\Application\Port\PasswordHasherInterface;
 use App\Auth\Application\Port\UserIdGeneratorInterface;
@@ -8,7 +8,7 @@ use App\Auth\Domain\Email;
 use App\Auth\Domain\User;
 use App\Auth\Domain\UserRepositoryInterface;
 
-trait TicketTestHelpers
+trait AppTestHelpers
 {
     private function registerAndLogin(string $email): string
     {

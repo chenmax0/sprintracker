@@ -2,6 +2,7 @@
 
 namespace App\Tests\Ticket\Infrastructure\Symfony\Controllers;
 
+use App\Tests\AppTestHelpers;
 use App\Tests\ResetsDatabase;
 use Doctrine\DBAL\Connection;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
@@ -10,7 +11,7 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 class CreateTicketActionTest extends WebTestCase
 {
     use ResetsDatabase;
-    use TicketTestHelpers;
+    use AppTestHelpers;
 
     private KernelBrowser $client;
 

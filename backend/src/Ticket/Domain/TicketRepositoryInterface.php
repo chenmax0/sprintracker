@@ -9,4 +9,9 @@ interface TicketRepositoryInterface
     public function findById(TicketId $id): ?Ticket;
 
     public function save(Ticket $ticket): void;
+
+    /**
+     * @return list<Ticket>
+     */
+    public function findByProjectId(ProjectId $projectId): array;
 }
