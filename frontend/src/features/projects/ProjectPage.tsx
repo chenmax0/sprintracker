@@ -2,6 +2,7 @@ import { type FormEvent, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { ApiError } from '../../lib/apiClient'
 import { useCreateSprint, useSprints } from '../sprints/hooks'
+import { KanbanBoard } from '../tickets/KanbanBoard'
 import { useCreateTicket, useTickets } from '../tickets/hooks'
 import { useProject } from './hooks'
 
@@ -35,8 +36,6 @@ export function ProjectPage() {
       { onSuccess: () => setTicketTitle('') },
     )
   }
-
-  const backlogTickets = tickets?.filter((t) => t.sprintId === null) ?? []
 
   return (
     <div className="flex flex-col gap-10">
@@ -99,22 +98,8 @@ export function ProjectPage() {
       </section>
 
       <section>
-        <h2 className="mb-3 text-sm font-semibold text-gray-700">Backlog</h2>
-        <ul className="mb-3 flex flex-col gap-2">
-          {backlogTickets.map((ticket) => (
-            <li key={ticket.id}>
-              <Link
-                to={`/tickets/${ticket.id}`}
-                className="flex items-center justify-between rounded-md border border-gray-200 bg-white px-4 py-3 text-sm hover:border-indigo-300 hover:bg-indigo-50"
-              >
-                <span className="font-medium text-gray-900">{ticket.title}</span>
-                <span className="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-500">{ticket.status}</span>
-              </Link>
-            </li>
-          ))}
-          {backlogTickets.length === 0 && <p className="text-sm text-gray-500">Backlog vide.</p>}
-        </ul>
-        <form onSubmit={handleCreateTicket} className="flex max-w-lg flex-wrap items-end gap-2">
+        <h2 className="mb-3 text-sm font-semibold text-gray-700">Tickets</h2>
+        <form onSubmit={handleCreateTicket} className="mb-4 flex max-w-lg flex-wrap items-end gap-2">
           <label className="flex flex-1 flex-col gap-1">
             <span className="text-xs text-gray-500">Titre</span>
             <input
@@ -149,10 +134,12 @@ export function ProjectPage() {
           </button>
         </form>
         {createTicket.isError && (
-          <p className="mt-2 text-sm text-red-600">
+          <p className="mb-4 text-sm text-red-600">
             {createTicket.error instanceof ApiError ? createTicket.error.message : 'Erreur lors de la création'}
           </p>
         )}
+
+        {tickets && <KanbanBoard projectId={projectId} tickets={tickets} />}
       </section>
     </div>
   )

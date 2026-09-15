@@ -44,6 +44,10 @@ export function assignTicket(ticketId: string, assigneeId: string | null): Promi
   return apiClient.post(`/api/tickets/${ticketId}/assign`, { assigneeId })
 }
 
+export function updateTicketStatus(ticketId: string, status: TicketStatus): Promise<Ticket> {
+  return apiClient.patch(`/api/tickets/${ticketId}/status`, { status })
+}
+
 export function listComments(ticketId: string): Promise<Comment[]> {
   return apiClient.get(`/api/tickets/${ticketId}/comments`)
 }

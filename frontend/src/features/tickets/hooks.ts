@@ -7,6 +7,9 @@ import {
   getTicket,
   listComments,
   listTickets,
+  type Ticket,
+  type TicketStatus,
+  updateTicketStatus,
 } from './api'
 
 export function useTickets(projectId: string) {
@@ -35,6 +38,37 @@ export function useAssignTicket(ticketId: string) {
       queryClient.setQueryData(['tickets', ticketId], ticket)
       queryClient.invalidateQueries({ queryKey: ['projects', ticket.projectId, 'tickets'] })
     },
+  })
+}
+
+/**
+ * Optimistic status update, for the kanban board's drag-and-drop: the card
+ * must move immediately on drop, not wait for the round-trip. Rolls back to
+ * the pre-drag snapshot if the request fails.
+ */
+export function useUpdateTicketStatus(projectId: string) {
+  const queryClient = useQueryClient()
+  const queryKey = ['projects', projectId, 'tickets']
+
+  return useMutation({
+    mutationFn: ({ ticketId, status }: { ticketId: string; status: TicketStatus }) =>
+      updateTicketStatus(ticketId, status),
+    onMutate: async ({ ticketId, status }) => {
+      await queryClient.cancelQueries({ queryKey })
+      const previousTickets = queryClient.getQueryData<Ticket[]>(queryKey)
+
+      queryClient.setQueryData<Ticket[]>(queryKey, (tickets) =>
+        tickets?.map((ticket) => (ticket.id === ticketId ? { ...ticket, status } : ticket)),
+      )
+
+      return { previousTickets }
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previousTickets) {
+        queryClient.setQueryData(queryKey, context.previousTickets)
+      }
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey }),
   })
 }
 
