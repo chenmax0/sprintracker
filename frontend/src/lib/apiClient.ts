@@ -35,10 +35,12 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return body as T
 }
 
+function withBody<T>(method: 'POST' | 'PATCH', path: string, data?: unknown) {
+  return request<T>(path, { method, body: data !== undefined ? JSON.stringify(data) : undefined })
+}
+
 export const apiClient = {
   get: <T>(path: string) => request<T>(path),
-  post: <T>(path: string, data?: unknown) =>
-    request<T>(path, { method: 'POST', body: data !== undefined ? JSON.stringify(data) : undefined }),
-  patch: <T>(path: string, data?: unknown) =>
-    request<T>(path, { method: 'PATCH', body: data !== undefined ? JSON.stringify(data) : undefined }),
+  post: <T>(path: string, data?: unknown) => withBody<T>('POST', path, data),
+  patch: <T>(path: string, data?: unknown) => withBody<T>('PATCH', path, data),
 }

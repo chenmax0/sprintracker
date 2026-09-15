@@ -56,17 +56,24 @@ export function useUpdateTicketStatus(projectId: string) {
     onMutate: async ({ ticketId, status }) => {
       await queryClient.cancelQueries({ queryKey })
       const previousTickets = queryClient.getQueryData<Ticket[]>(queryKey)
+      const previousStatus = previousTickets?.find((ticket) => ticket.id === ticketId)?.status
 
       queryClient.setQueryData<Ticket[]>(queryKey, (tickets) =>
         tickets?.map((ticket) => (ticket.id === ticketId ? { ...ticket, status } : ticket)),
       )
 
-      return { previousTickets }
+      return { ticketId, previousStatus }
     },
     onError: (_error, _variables, context) => {
-      if (context?.previousTickets) {
-        queryClient.setQueryData(queryKey, context.previousTickets)
+      if (!context || context.previousStatus === undefined) {
+        return
       }
+
+      queryClient.setQueryData<Ticket[]>(queryKey, (tickets) =>
+        tickets?.map((ticket) =>
+          ticket.id === context.ticketId ? { ...ticket, status: context.previousStatus! } : ticket,
+        ),
+      )
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey }),
   })

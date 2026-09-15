@@ -139,7 +139,7 @@ export function ProjectPage() {
           </p>
         )}
 
-        {tickets && <KanbanBoard projectId={projectId} tickets={tickets} />}
+        {tickets && <KanbanBoard projectId={projectId} tickets={tickets} sprints={sprints} />}
       </section>
     </div>
   )
