@@ -41,6 +41,7 @@ class DemoActionTest extends WebTestCase
         $data = json_decode($this->client->getResponse()->getContent(), true);
         self::assertSame('Sprintracker Demo', $data['team']['name']);
         self::assertSame('Site vitrine', $data['project']['name']);
+        self::assertSame($demoTeamId, $data['project']['teamId']);
     }
 
     public function testDemoReturnsNullsWhenNothingIsSeeded(): void
