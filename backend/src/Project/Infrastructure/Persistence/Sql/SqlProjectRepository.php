@@ -30,6 +30,19 @@ final class SqlProjectRepository implements ProjectRepositoryInterface
         return Project::fromPersistence(new ProjectId($row['id']), new TeamId($row['team_id']), $row['name']);
     }
 
+    public function findByTeamId(TeamId $teamId): array
+    {
+        $rows = $this->connection->fetchAllAssociative(
+            'SELECT id, team_id, name FROM project WHERE team_id = :team_id',
+            ['team_id' => (string) $teamId],
+        );
+
+        return array_map(
+            static fn (array $row) => Project::fromPersistence(new ProjectId($row['id']), new TeamId($row['team_id']), $row['name']),
+            $rows,
+        );
+    }
+
     public function save(Project $project): void
     {
         $this->connection->executeStatement(

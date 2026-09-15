@@ -2,3 +2,13 @@ project_create:
     path: /api/teams/{teamId}/projects
     controller: App\Project\Infrastructure\Symfony\Controllers\ProjectController::create
     methods: [POST]
+
+project_list:
+    path: /api/teams/{teamId}/projects
+    controller: App\Project\Infrastructure\Symfony\Controllers\ProjectController::list
+    methods: [GET]
+
+project_show:
+    path: /api/projects/{projectId}
+    controller: App\Project\Infrastructure\Symfony\Controllers\ProjectController::show
+    methods: [GET]

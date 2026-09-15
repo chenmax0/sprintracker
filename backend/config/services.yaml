@@ -65,6 +65,9 @@ services:
     App\Project\Application\Port\TeamOwnershipCheckerInterface:
         alias: App\Project\Infrastructure\Persistence\Sql\SqlTeamOwnershipChecker
 
+    App\Project\Application\Port\TeamMembershipCheckerInterface:
+        alias: App\Project\Infrastructure\Persistence\Sql\SqlTeamMembershipChecker
+
     App\Sprint\Domain\SprintRepositoryInterface:
         alias: App\Sprint\Infrastructure\Persistence\Sql\SqlSprintRepository
 
