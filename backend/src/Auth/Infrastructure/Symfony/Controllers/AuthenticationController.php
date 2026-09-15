@@ -61,4 +61,16 @@ final class AuthenticationController
             'name' => $user->getName(),
         ]);
     }
+
+    /**
+     * Clears the httpOnly JWT cookie set at login. The JS frontend can't read or
+     * delete an httpOnly cookie itself, so it needs this endpoint to log out.
+     */
+    public function logout(Request $request): JsonResponse
+    {
+        $response = new JsonResponse(null, 204);
+        $response->headers->clearCookie('BEARER', '/', null, $request->isSecure(), true, 'lax');
+
+        return $response;
+    }
 }

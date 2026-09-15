@@ -12,3 +12,8 @@ api_login:
     path: /api/login
     controller: App\Auth\Infrastructure\Symfony\Controllers\AuthenticationController::login
     methods: [POST]
+
+app_logout:
+    path: /api/logout
+    controller: App\Auth\Infrastructure\Symfony\Controllers\AuthenticationController::logout
+    methods: [POST]

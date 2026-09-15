@@ -118,6 +118,10 @@ class CreateProjectActionTest extends WebTestCase
         $ownerToken = $this->registerAndLogin('jane@example.com');
         $teamId = $this->createTeam($ownerToken);
 
+        // registerAndLogin() left the httpOnly auth cookie on this client (like a real
+        // browser would keep it) - clear it so this request is genuinely unauthenticated.
+        $this->client->getCookieJar()->clear();
+
         $this->client->request('POST', "/api/teams/$teamId/projects", server: ['CONTENT_TYPE' => 'application/json'], content: json_encode(['name' => 'Mini Jira']));
 
         self::assertResponseStatusCodeSame(401);

@@ -85,4 +85,41 @@ class AuthenticationTest extends WebTestCase
         $data = json_decode($this->client->getResponse()->getContent(), true);
         self::assertSame('jane@example.com', $data['email']);
     }
+
+    public function testLoginSetsHttpOnlyCookieAndMeWorksWithoutAuthorizationHeader(): void
+    {
+        $this->createUser();
+
+        $this->client->request('POST', '/api/login', server: ['CONTENT_TYPE' => 'application/json'], content: json_encode([
+            'email' => 'jane@example.com',
+            'password' => 'password123',
+        ]));
+
+        $cookie = $this->client->getCookieJar()->get('BEARER');
+        self::assertNotNull($cookie);
+        self::assertTrue($cookie->isHttpOnly());
+
+        // No Authorization header here - the cookie set by login must carry the request.
+        $this->client->request('GET', '/api/me');
+
+        self::assertResponseStatusCodeSame(200);
+        $data = json_decode($this->client->getResponse()->getContent(), true);
+        self::assertSame('jane@example.com', $data['email']);
+    }
+
+    public function testLogoutClearsTheCookieAndRevokesAccess(): void
+    {
+        $this->createUser();
+
+        $this->client->request('POST', '/api/login', server: ['CONTENT_TYPE' => 'application/json'], content: json_encode([
+            'email' => 'jane@example.com',
+            'password' => 'password123',
+        ]));
+
+        $this->client->request('POST', '/api/logout');
+        self::assertResponseStatusCodeSame(204);
+
+        $this->client->request('GET', '/api/me');
+        self::assertResponseStatusCodeSame(401);
+    }
 }

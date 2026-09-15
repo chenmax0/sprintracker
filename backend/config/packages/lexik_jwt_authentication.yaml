@@ -2,3 +2,37 @@ lexik_jwt_authentication:
     secret_key: '%env(resolve:JWT_SECRET_KEY)%'
     public_key: '%env(resolve:JWT_PUBLIC_KEY)%'
     pass_phrase: '%env(JWT_PASSPHRASE)%'
+
+    token_extractors:
+        cookie:
+            enabled: true
+            name: BEARER
+        # authorization_header stays enabled (bundle default) so curl/scripts/a
+        # future non-browser client can still authenticate with a Bearer header.
+
+    # Keep the token in the JSON login response too (not just the cookie): useful
+    # for curl/testing and keeps the Authorization header flow fully working.
+    remove_token_from_body_when_cookies_used: false
+
+    set_cookies:
+        BEARER:
+            samesite: none
+            secure: true
+            httpOnly: true
+            path: /
+
+when@dev:
+    lexik_jwt_authentication:
+        set_cookies:
+            BEARER:
+                # Same registrable domain (localhost) on both frontend/backend ports in
+                # dev, and no TLS - "lax" + non-secure works, "none" would require https.
+                samesite: lax
+                secure: false
+
+when@test:
+    lexik_jwt_authentication:
+        set_cookies:
+            BEARER:
+                samesite: lax
+                secure: false
