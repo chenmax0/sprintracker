@@ -27,6 +27,14 @@ final class SqlDemoRepository implements DemoRepositoryInterface
             ['team_id' => $this->demoTeamId],
         );
 
+        $members = $this->connection->fetchAllAssociative(
+            'SELECT tm.user_id AS member_id, tm.role, u.email, u.name
+             FROM team_membership tm
+             INNER JOIN "user" u ON u.id = tm.user_id
+             WHERE tm.team_id = :team_id',
+            ['team_id' => $this->demoTeamId],
+        );
+
         $sprints = [];
         $tickets = [];
 
@@ -45,6 +53,7 @@ final class SqlDemoRepository implements DemoRepositoryInterface
         return [
             'team' => false !== $team ? $team : null,
             'project' => false !== $project ? $project : null,
+            'members' => $members,
             'sprints' => $sprints,
             'tickets' => $tickets,
         ];

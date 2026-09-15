@@ -29,11 +29,13 @@ function TicketCardContent({
   sprintLabel,
   memberDirectory,
   ticketHref,
+  onTicketClick,
 }: {
   ticket: Ticket
   sprintLabel: string
   memberDirectory?: MemberDirectory
   ticketHref?: (ticketId: string) => string
+  onTicketClick?: (ticket: Ticket) => void
 }) {
   return (
     <div className="rounded-md border border-gray-200 bg-white p-3 text-sm shadow-sm">
@@ -41,6 +43,14 @@ function TicketCardContent({
         <Link to={ticketHref(ticket.id)} className="font-medium text-gray-900 hover:underline">
           {ticket.title}
         </Link>
+      ) : onTicketClick ? (
+        <button
+          type="button"
+          onClick={() => onTicketClick(ticket)}
+          className="text-left font-medium text-gray-900 hover:underline"
+        >
+          {ticket.title}
+        </button>
       ) : (
         <span className="font-medium text-gray-900">{ticket.title}</span>
       )}
@@ -61,11 +71,13 @@ function DraggableTicketCard({
   sprintLabel,
   memberDirectory,
   ticketHref,
+  onTicketClick,
 }: {
   ticket: Ticket
   sprintLabel: string
   memberDirectory?: MemberDirectory
   ticketHref?: (ticketId: string) => string
+  onTicketClick?: (ticket: Ticket) => void
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: ticket.id })
 
@@ -83,7 +95,13 @@ function DraggableTicketCard({
       className="cursor-grab touch-none active:cursor-grabbing"
       aria-label={`Ticket "${ticket.title}", maintenir pour déplacer`}
     >
-      <TicketCardContent ticket={ticket} sprintLabel={sprintLabel} memberDirectory={memberDirectory} ticketHref={ticketHref} />
+      <TicketCardContent
+        ticket={ticket}
+        sprintLabel={sprintLabel}
+        memberDirectory={memberDirectory}
+        ticketHref={ticketHref}
+        onTicketClick={onTicketClick}
+      />
     </div>
   )
 }
@@ -95,6 +113,7 @@ function Column({
   sprintNames,
   memberDirectory,
   ticketHref,
+  onTicketClick,
 }: {
   status: TicketStatus
   label: string
@@ -102,6 +121,7 @@ function Column({
   sprintNames: Map<string, string>
   memberDirectory?: MemberDirectory
   ticketHref?: (ticketId: string) => string
+  onTicketClick?: (ticket: Ticket) => void
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: status })
 
@@ -123,6 +143,7 @@ function Column({
             sprintLabel={(ticket.sprintId && sprintNames.get(ticket.sprintId)) || 'Backlog'}
             memberDirectory={memberDirectory}
             ticketHref={ticketHref}
+            onTicketClick={onTicketClick}
           />
         ))}
         {tickets.length === 0 && <p className="px-1 text-xs text-gray-400">Aucun ticket</p>}
@@ -142,6 +163,7 @@ export function KanbanBoard({
   sprints,
   memberDirectory,
   ticketHref,
+  onTicketClick,
   onStatusChange,
   errorMessage,
 }: {
@@ -149,6 +171,7 @@ export function KanbanBoard({
   sprints?: Sprint[]
   memberDirectory?: MemberDirectory
   ticketHref?: (ticketId: string) => string
+  onTicketClick?: (ticket: Ticket) => void
   onStatusChange: (ticketId: string, status: TicketStatus) => void
   errorMessage?: string | null
 }) {
@@ -202,6 +225,7 @@ export function KanbanBoard({
               sprintNames={sprintNames}
               memberDirectory={memberDirectory}
               ticketHref={ticketHref}
+              onTicketClick={onTicketClick}
             />
           ))}
         </div>

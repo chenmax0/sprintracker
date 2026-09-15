@@ -1,9 +1,11 @@
 import { Link } from 'react-router'
+import { toMemberDirectory } from '../../lib/memberDirectory'
 import { DemoKanbanBoard } from './DemoKanbanBoard'
 import { useDemoSnapshot } from './hooks'
 
 export function DemoPage() {
   const { data, isLoading } = useDemoSnapshot()
+  const memberDirectory = toMemberDirectory(data?.members)
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -43,7 +45,7 @@ export function DemoPage() {
           <>
             <h1 className="mx-auto mb-8 max-w-4xl text-xl font-semibold text-gray-900">{data.project.name}</h1>
 
-            <DemoKanbanBoard tickets={data.tickets} sprints={data.sprints} />
+            <DemoKanbanBoard tickets={data.tickets} sprints={data.sprints} memberDirectory={memberDirectory} />
           </>
         )}
       </main>

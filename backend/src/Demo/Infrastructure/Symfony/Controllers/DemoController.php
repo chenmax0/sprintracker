@@ -24,6 +24,15 @@ final class DemoController
                 'teamId' => $snapshot['project']['team_id'],
                 'name' => $snapshot['project']['name'],
             ] : null,
+            'members' => array_map(
+                static fn (array $member) => [
+                    'memberId' => $member['member_id'],
+                    'role' => $member['role'],
+                    'email' => $member['email'],
+                    'name' => $member['name'],
+                ],
+                $snapshot['members'],
+            ),
             'sprints' => array_map(
                 static fn (array $sprint) => [
                     'id' => $sprint['id'],

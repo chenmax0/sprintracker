@@ -52,6 +52,7 @@ class DemoActionTest extends WebTestCase
         $data = json_decode($this->client->getResponse()->getContent(), true);
         self::assertNull($data['team']);
         self::assertNull($data['project']);
+        self::assertSame([], $data['members']);
         self::assertSame([], $data['sprints']);
         self::assertSame([], $data['tickets']);
     }

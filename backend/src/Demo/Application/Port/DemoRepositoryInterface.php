@@ -7,7 +7,7 @@ namespace App\Demo\Application\Port;
 interface DemoRepositoryInterface
 {
     /**
-     * @return array{team: array, project: array, sprints: list<array>, tickets: list<array>}
+     * @return array{team: array, project: array, members: list<array>, sprints: list<array>, tickets: list<array>}
      */
     public function getSnapshot(): array;
 }
