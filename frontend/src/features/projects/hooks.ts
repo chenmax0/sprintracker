@@ -1,8 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { createProject, getProject, listProjects } from './api'
+import { createMyProject, getProject, listMyProjects } from './api'
 
-export function useProjects(teamId: string) {
-  return useQuery({ queryKey: ['teams', teamId, 'projects'], queryFn: () => listProjects(teamId) })
+export function useMyProjects() {
+  return useQuery({ queryKey: ['projects'], queryFn: listMyProjects })
 }
 
 export function useProject(projectId: string) {
@@ -13,11 +13,11 @@ export function useProject(projectId: string) {
   })
 }
 
-export function useCreateProject(teamId: string) {
+export function useCreateMyProject() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (name: string) => createProject(teamId, name),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['teams', teamId, 'projects'] }),
+    mutationFn: (name: string) => createMyProject(name),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['projects'] }),
   })
 }

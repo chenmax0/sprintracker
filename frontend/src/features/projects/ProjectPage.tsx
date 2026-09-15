@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router'
 import { ApiError } from '../../lib/apiClient'
 import { toMemberDirectory } from '../../lib/memberDirectory'
 import { useCreateSprint, useSprints } from '../sprints/hooks'
-import { useTeamMembers } from '../teams/hooks'
+import { useAddTeamMember, useTeamMembers } from '../teams/hooks'
 import { useCreateTicket, useTickets } from '../tickets/hooks'
 import { ProjectKanbanBoard } from '../tickets/ProjectKanbanBoard'
 import { useProject } from './hooks'
@@ -19,11 +19,13 @@ export function ProjectPage() {
   const createTicket = useCreateTicket(projectId)
   const { data: members } = useTeamMembers(project?.teamId ?? '')
   const memberDirectory = toMemberDirectory(members)
+  const addMember = useAddTeamMember(project?.teamId ?? '')
 
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [ticketTitle, setTicketTitle] = useState('')
   const [ticketSprintId, setTicketSprintId] = useState('')
+  const [memberEmail, setMemberEmail] = useState('')
 
   function handleCreateSprint(event: FormEvent) {
     event.preventDefault()
@@ -41,17 +43,54 @@ export function ProjectPage() {
     )
   }
 
+  function handleAddMember(event: FormEvent) {
+    event.preventDefault()
+    addMember.mutate(memberEmail, { onSuccess: () => setMemberEmail('') })
+  }
+
   return (
     <div className="flex flex-col gap-10">
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-10">
         <div>
-          {project && (
-            <Link to={`/teams/${project.teamId}`} className="text-sm text-indigo-600 hover:underline">
-              ← Équipe
-            </Link>
-          )}
+          <Link to="/app" className="text-sm text-indigo-600 hover:underline">
+            ← Mes projets
+          </Link>
           <h1 className="mt-2 text-xl font-semibold text-gray-900">{project?.name}</h1>
         </div>
+
+        <section>
+          <h2 className="mb-3 text-sm font-semibold text-gray-700">Membres</h2>
+          <ul className="mb-3 flex flex-col gap-1">
+            {members?.map((member) => (
+              <li key={member.memberId} className="flex items-center gap-2 text-sm text-gray-700">
+                <span>{member.name}</span>
+                <span className="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-500">{member.role}</span>
+              </li>
+            ))}
+          </ul>
+          <form onSubmit={handleAddMember} className="flex max-w-sm gap-2">
+            <input
+              type="email"
+              value={memberEmail}
+              onChange={(e) => setMemberEmail(e.target.value)}
+              placeholder="Email à inviter"
+              required
+              className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+            />
+            <button
+              type="submit"
+              disabled={addMember.isPending}
+              className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-50"
+            >
+              Inviter
+            </button>
+          </form>
+          {addMember.isError && (
+            <p className="mt-2 text-sm text-red-600">
+              {addMember.error instanceof ApiError ? addMember.error.message : "Erreur lors de l'invitation"}
+            </p>
+          )}
+        </section>
 
         <section>
           <h2 className="mb-3 text-sm font-semibold text-gray-700">Sprints</h2>

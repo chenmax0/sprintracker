@@ -1,27 +1,10 @@
 import { apiClient } from '../../lib/apiClient'
 
-export interface Team {
-  id: string
-  name: string
-}
-
 export interface TeamMember {
   memberId: string
   role: 'owner' | 'member'
   email: string
   name: string
-}
-
-export function listTeams(): Promise<Team[]> {
-  return apiClient.get('/api/teams')
-}
-
-export function getTeam(teamId: string): Promise<Team> {
-  return apiClient.get(`/api/teams/${teamId}`)
-}
-
-export function createTeam(name: string): Promise<Team> {
-  return apiClient.post('/api/teams', { name })
 }
 
 export function listTeamMembers(teamId: string): Promise<TeamMember[]> {

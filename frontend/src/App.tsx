@@ -5,9 +5,8 @@ import { RequireAuth } from './features/auth/RequireAuth'
 import { AppLayout } from './features/dashboard/AppLayout'
 import { DemoPage } from './features/demo/DemoPage'
 import { LandingPage } from './features/landing/LandingPage'
+import { MyProjectsPage } from './features/projects/MyProjectsPage'
 import { ProjectPage } from './features/projects/ProjectPage'
-import { TeamPage } from './features/teams/TeamPage'
-import { TeamsPage } from './features/teams/TeamsPage'
 import { TicketPage } from './features/tickets/TicketPage'
 
 function App() {
@@ -20,8 +19,7 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route element={<RequireAuth />}>
           <Route element={<AppLayout />}>
-            <Route path="/app" element={<TeamsPage />} />
-            <Route path="/teams/:teamId" element={<TeamPage />} />
+            <Route path="/app" element={<MyProjectsPage />} />
             <Route path="/projects/:projectId" element={<ProjectPage />} />
             <Route path="/tickets/:ticketId" element={<TicketPage />} />
           </Route>

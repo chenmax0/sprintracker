@@ -1,22 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { addTeamMember, createTeam, getTeam, listTeamMembers, listTeams } from './api'
-
-export function useTeams() {
-  return useQuery({ queryKey: ['teams'], queryFn: listTeams })
-}
-
-export function useTeam(teamId: string) {
-  return useQuery({ queryKey: ['teams', teamId], queryFn: () => getTeam(teamId) })
-}
-
-export function useCreateTeam() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: (name: string) => createTeam(name),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['teams'] }),
-  })
-}
+import { addTeamMember, listTeamMembers } from './api'
 
 export function useTeamMembers(teamId: string) {
   return useQuery({
