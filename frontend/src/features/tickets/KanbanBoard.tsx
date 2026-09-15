@@ -29,40 +29,28 @@ function TicketCardContent({
   sprintLabel,
   memberDirectory,
   ticketHref,
-  dragHandleProps,
 }: {
   ticket: Ticket
   sprintLabel: string
   memberDirectory?: MemberDirectory
   ticketHref?: (ticketId: string) => string
-  dragHandleProps?: Record<string, unknown>
 }) {
   return (
-    <div className="flex items-start gap-2 rounded-md border border-gray-200 bg-white p-3 text-sm shadow-sm">
-      <button
-        type="button"
-        {...dragHandleProps}
-        className="mt-0.5 shrink-0 cursor-grab touch-none text-gray-300 hover:text-gray-500 active:cursor-grabbing"
-        aria-label={`Déplacer le ticket "${ticket.title}"`}
-      >
-        ⠿
-      </button>
-      <div className="flex-1">
-        {ticketHref ? (
-          <Link to={ticketHref(ticket.id)} className="font-medium text-gray-900 hover:underline">
-            {ticket.title}
-          </Link>
-        ) : (
-          <span className="font-medium text-gray-900">{ticket.title}</span>
+    <div className="rounded-md border border-gray-200 bg-white p-3 text-sm shadow-sm">
+      {ticketHref ? (
+        <Link to={ticketHref(ticket.id)} className="font-medium text-gray-900 hover:underline">
+          {ticket.title}
+        </Link>
+      ) : (
+        <span className="font-medium text-gray-900">{ticket.title}</span>
+      )}
+      <div className="mt-1 flex items-center justify-between text-xs text-gray-400">
+        <span>{sprintLabel}</span>
+        {ticket.assigneeId && (
+          <span className="text-gray-500">
+            <MemberLabel memberId={ticket.assigneeId} directory={memberDirectory} />
+          </span>
         )}
-        <div className="mt-1 flex items-center justify-between text-xs text-gray-400">
-          <span>{sprintLabel}</span>
-          {ticket.assigneeId && (
-            <span className="text-gray-500">
-              <MemberLabel memberId={ticket.assigneeId} directory={memberDirectory} />
-            </span>
-          )}
-        </div>
       </div>
     </div>
   )
@@ -87,14 +75,15 @@ function DraggableTicketCard({
   }
 
   return (
-    <div ref={setNodeRef} style={style}>
-      <TicketCardContent
-        ticket={ticket}
-        sprintLabel={sprintLabel}
-        memberDirectory={memberDirectory}
-        ticketHref={ticketHref}
-        dragHandleProps={{ ...listeners, ...attributes }}
-      />
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...listeners}
+      {...attributes}
+      className="cursor-grab touch-none active:cursor-grabbing"
+      aria-label={`Ticket "${ticket.title}", maintenir pour déplacer`}
+    >
+      <TicketCardContent ticket={ticket} sprintLabel={sprintLabel} memberDirectory={memberDirectory} ticketHref={ticketHref} />
     </div>
   )
 }
@@ -119,7 +108,7 @@ function Column({
   return (
     <div
       ref={setNodeRef}
-      className={`flex min-w-72 flex-1 flex-col gap-2 rounded-md border p-3 transition-colors ${
+      className={`flex w-80 shrink-0 flex-col gap-2 rounded-md border p-3 transition-colors ${
         isOver ? 'border-indigo-300 bg-indigo-50' : 'border-gray-200 bg-gray-100'
       }`}
     >
@@ -166,10 +155,9 @@ export function KanbanBoard({
   const [activeTicket, setActiveTicket] = useState<Ticket | null>(null)
   const sprintNames = new Map((sprints ?? []).map((sprint) => [sprint.id, sprint.name]))
 
-  // Pointer needs a small movement threshold so a plain click still opens the
-  // ticket link instead of always starting a drag. KeyboardSensor still
-  // requires the drag handle to expose its listeners as tabIndex/role/keydown
-  // props (done via dragHandleProps above) to actually be reachable.
+  // The whole card is the drag surface (see DraggableTicketCard), so pointer
+  // needs a movement threshold: a plain click/tap without holding still opens
+  // the ticket link, and only a hold-and-move past 8px starts a drag.
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor),
@@ -204,7 +192,7 @@ export function KanbanBoard({
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex gap-4 overflow-x-auto pb-2">
+        <div className="flex justify-center gap-4 overflow-x-auto pb-2">
           {COLUMNS.map((column) => (
             <Column
               key={column.status}
