@@ -13,12 +13,10 @@ import {
 } from '@dnd-kit/core'
 import { type CSSProperties, useState } from 'react'
 import { Link } from 'react-router'
-import { ApiError } from '../../lib/apiClient'
 import { MemberLabel } from '../../lib/MemberLabel'
 import type { MemberDirectory } from '../../lib/memberDirectory'
 import type { Sprint } from '../sprints/api'
 import type { Ticket, TicketStatus } from './api'
-import { useUpdateTicketStatus } from './hooks'
 
 const COLUMNS: { status: TicketStatus; label: string }[] = [
   { status: 'todo', label: 'À faire' },
@@ -30,11 +28,13 @@ function TicketCardContent({
   ticket,
   sprintLabel,
   memberDirectory,
+  ticketHref,
   dragHandleProps,
 }: {
   ticket: Ticket
   sprintLabel: string
-  memberDirectory: MemberDirectory
+  memberDirectory?: MemberDirectory
+  ticketHref?: (ticketId: string) => string
   dragHandleProps?: Record<string, unknown>
 }) {
   return (
@@ -48,9 +48,13 @@ function TicketCardContent({
         ⠿
       </button>
       <div className="flex-1">
-        <Link to={`/tickets/${ticket.id}`} className="font-medium text-gray-900 hover:underline">
-          {ticket.title}
-        </Link>
+        {ticketHref ? (
+          <Link to={ticketHref(ticket.id)} className="font-medium text-gray-900 hover:underline">
+            {ticket.title}
+          </Link>
+        ) : (
+          <span className="font-medium text-gray-900">{ticket.title}</span>
+        )}
         <div className="mt-1 flex items-center justify-between text-xs text-gray-400">
           <span>{sprintLabel}</span>
           {ticket.assigneeId && (
@@ -68,10 +72,12 @@ function DraggableTicketCard({
   ticket,
   sprintLabel,
   memberDirectory,
+  ticketHref,
 }: {
   ticket: Ticket
   sprintLabel: string
-  memberDirectory: MemberDirectory
+  memberDirectory?: MemberDirectory
+  ticketHref?: (ticketId: string) => string
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: ticket.id })
 
@@ -86,6 +92,7 @@ function DraggableTicketCard({
         ticket={ticket}
         sprintLabel={sprintLabel}
         memberDirectory={memberDirectory}
+        ticketHref={ticketHref}
         dragHandleProps={{ ...listeners, ...attributes }}
       />
     </div>
@@ -98,12 +105,14 @@ function Column({
   tickets,
   sprintNames,
   memberDirectory,
+  ticketHref,
 }: {
   status: TicketStatus
   label: string
   tickets: Ticket[]
   sprintNames: Map<string, string>
-  memberDirectory: MemberDirectory
+  memberDirectory?: MemberDirectory
+  ticketHref?: (ticketId: string) => string
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: status })
 
@@ -124,6 +133,7 @@ function Column({
             ticket={ticket}
             sprintLabel={(ticket.sprintId && sprintNames.get(ticket.sprintId)) || 'Backlog'}
             memberDirectory={memberDirectory}
+            ticketHref={ticketHref}
           />
         ))}
         {tickets.length === 0 && <p className="px-1 text-xs text-gray-400">Aucun ticket</p>}
@@ -132,25 +142,34 @@ function Column({
   )
 }
 
+/**
+ * Presentational drag-and-drop board: it only renders tickets and reports a
+ * drop as a (ticketId, status) pair via onStatusChange. Whether that change
+ * is persisted (real projects) or kept in local-only state (read-only demo)
+ * is entirely up to the caller.
+ */
 export function KanbanBoard({
-  projectId,
   tickets,
   sprints,
   memberDirectory,
+  ticketHref,
+  onStatusChange,
+  errorMessage,
 }: {
-  projectId: string
   tickets: Ticket[]
   sprints?: Sprint[]
-  memberDirectory: MemberDirectory
+  memberDirectory?: MemberDirectory
+  ticketHref?: (ticketId: string) => string
+  onStatusChange: (ticketId: string, status: TicketStatus) => void
+  errorMessage?: string | null
 }) {
-  const updateStatus = useUpdateTicketStatus(projectId)
   const [activeTicket, setActiveTicket] = useState<Ticket | null>(null)
   const sprintNames = new Map((sprints ?? []).map((sprint) => [sprint.id, sprint.name]))
 
   // Pointer needs a small movement threshold so a plain click still opens the
   // ticket link instead of always starting a drag. KeyboardSensor still
   // requires the drag handle to expose its listeners as tabIndex/role/keydown
-  // props (done via dragHandleProps below) to actually be reachable.
+  // props (done via dragHandleProps above) to actually be reachable.
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor),
@@ -172,17 +191,13 @@ export function KanbanBoard({
     const ticket = tickets.find((t) => t.id === active.id)
 
     if (ticket && ticket.status !== newStatus) {
-      updateStatus.mutate({ ticketId: ticket.id, status: newStatus })
+      onStatusChange(ticket.id, newStatus)
     }
   }
 
   return (
     <div>
-      {updateStatus.isError && (
-        <p className="mb-2 text-sm text-red-600">
-          {updateStatus.error instanceof ApiError ? updateStatus.error.message : "Erreur lors du déplacement du ticket."}
-        </p>
-      )}
+      {errorMessage && <p className="mb-2 text-sm text-red-600">{errorMessage}</p>}
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -198,6 +213,7 @@ export function KanbanBoard({
               tickets={tickets.filter((ticket) => ticket.status === column.status)}
               sprintNames={sprintNames}
               memberDirectory={memberDirectory}
+              ticketHref={ticketHref}
             />
           ))}
         </div>
@@ -207,6 +223,7 @@ export function KanbanBoard({
               ticket={activeTicket}
               sprintLabel={(activeTicket.sprintId && sprintNames.get(activeTicket.sprintId)) || 'Backlog'}
               memberDirectory={memberDirectory}
+              ticketHref={ticketHref}
             />
           )}
         </DragOverlay>

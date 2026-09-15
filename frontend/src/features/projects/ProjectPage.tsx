@@ -4,8 +4,8 @@ import { ApiError } from '../../lib/apiClient'
 import { toMemberDirectory } from '../../lib/memberDirectory'
 import { useCreateSprint, useSprints } from '../sprints/hooks'
 import { useTeamMembers } from '../teams/hooks'
-import { KanbanBoard } from '../tickets/KanbanBoard'
 import { useCreateTicket, useTickets } from '../tickets/hooks'
+import { ProjectKanbanBoard } from '../tickets/ProjectKanbanBoard'
 import { useProject } from './hooks'
 
 export function ProjectPage() {
@@ -143,7 +143,9 @@ export function ProjectPage() {
           </p>
         )}
 
-        {tickets && <KanbanBoard projectId={projectId} tickets={tickets} sprints={sprints} memberDirectory={memberDirectory} />}
+        {tickets && (
+          <ProjectKanbanBoard projectId={projectId} tickets={tickets} sprints={sprints} memberDirectory={memberDirectory} />
+        )}
       </section>
     </div>
   )
