@@ -183,6 +183,7 @@ final class TicketController
     {
         return [
             'id' => (string) $ticket->getId(),
+            'number' => $ticket->getNumber(),
             'projectId' => (string) $ticket->getProjectId(),
             'sprintId' => null !== $ticket->getSprintId() ? (string) $ticket->getSprintId() : null,
             'title' => $ticket->getTitle(),

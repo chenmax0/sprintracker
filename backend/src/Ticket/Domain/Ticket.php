@@ -9,6 +9,7 @@ final class Ticket
     private function __construct(
         private TicketId $id,
         private ProjectId $projectId,
+        private int $number,
         private ?SprintId $sprintId,
         private string $title,
         private ?string $description,
@@ -21,18 +22,20 @@ final class Ticket
     public static function create(
         TicketId $id,
         ProjectId $projectId,
+        int $number,
         ?SprintId $sprintId,
         string $title,
         ?string $description,
         MemberId $reporterId,
         ?MemberId $assigneeId,
     ): self {
-        return new self($id, $projectId, $sprintId, $title, $description, TicketStatus::Todo, $reporterId, $assigneeId);
+        return new self($id, $projectId, $number, $sprintId, $title, $description, TicketStatus::Todo, $reporterId, $assigneeId);
     }
 
     public static function fromPersistence(
         TicketId $id,
         ProjectId $projectId,
+        int $number,
         ?SprintId $sprintId,
         string $title,
         ?string $description,
@@ -40,7 +43,7 @@ final class Ticket
         MemberId $reporterId,
         ?MemberId $assigneeId,
     ): self {
-        return new self($id, $projectId, $sprintId, $title, $description, $status, $reporterId, $assigneeId);
+        return new self($id, $projectId, $number, $sprintId, $title, $description, $status, $reporterId, $assigneeId);
     }
 
     public function assignTo(?MemberId $assigneeId): void
@@ -61,6 +64,11 @@ final class Ticket
     public function getProjectId(): ProjectId
     {
         return $this->projectId;
+    }
+
+    public function getNumber(): int
+    {
+        return $this->number;
     }
 
     public function getSprintId(): ?SprintId

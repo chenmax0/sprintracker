@@ -45,7 +45,7 @@ final class SqlDemoRepository implements DemoRepositoryInterface
             );
 
             $tickets = $this->connection->fetchAllAssociative(
-                'SELECT id, project_id, sprint_id, title, description, status, reporter_id, assignee_id FROM ticket WHERE project_id = :project_id',
+                'SELECT id, project_id, number, sprint_id, title, description, status, reporter_id, assignee_id FROM ticket WHERE project_id = :project_id ORDER BY number ASC',
                 ['project_id' => $project['id']],
             );
         }

@@ -14,4 +14,9 @@ interface TicketRepositoryInterface
      * @return list<Ticket>
      */
     public function findByProjectId(ProjectId $projectId): array;
+
+    /**
+     * The next ticket number for a project (1 for its first ticket).
+     */
+    public function nextTicketNumber(ProjectId $projectId): int;
 }

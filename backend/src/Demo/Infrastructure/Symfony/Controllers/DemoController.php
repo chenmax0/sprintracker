@@ -47,6 +47,7 @@ final class DemoController
             'tickets' => array_map(
                 static fn (array $ticket) => [
                     'id' => $ticket['id'],
+                    'number' => (int) $ticket['number'],
                     'projectId' => $ticket['project_id'],
                     'sprintId' => $ticket['sprint_id'],
                     'title' => $ticket['title'],

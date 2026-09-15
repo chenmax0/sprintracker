@@ -22,7 +22,7 @@ final class SqlTicketRepository implements TicketRepositoryInterface
     public function findById(TicketId $id): ?Ticket
     {
         $row = $this->connection->fetchAssociative(
-            'SELECT id, project_id, sprint_id, title, description, status, reporter_id, assignee_id FROM ticket WHERE id = :id',
+            'SELECT id, project_id, number, sprint_id, title, description, status, reporter_id, assignee_id FROM ticket WHERE id = :id',
             ['id' => (string) $id],
         );
 
@@ -37,8 +37,8 @@ final class SqlTicketRepository implements TicketRepositoryInterface
     {
         $this->connection->executeStatement(
             <<<'SQL'
-                INSERT INTO ticket (id, project_id, sprint_id, title, description, status, reporter_id, assignee_id)
-                VALUES (:id, :project_id, :sprint_id, :title, :description, :status, :reporter_id, :assignee_id)
+                INSERT INTO ticket (id, project_id, number, sprint_id, title, description, status, reporter_id, assignee_id)
+                VALUES (:id, :project_id, :number, :sprint_id, :title, :description, :status, :reporter_id, :assignee_id)
                 ON CONFLICT (id) DO UPDATE SET
                     sprint_id = EXCLUDED.sprint_id,
                     title = EXCLUDED.title,
@@ -49,6 +49,7 @@ final class SqlTicketRepository implements TicketRepositoryInterface
             [
                 'id' => (string) $ticket->getId(),
                 'project_id' => (string) $ticket->getProjectId(),
+                'number' => $ticket->getNumber(),
                 'sprint_id' => null !== $ticket->getSprintId() ? (string) $ticket->getSprintId() : null,
                 'title' => $ticket->getTitle(),
                 'description' => $ticket->getDescription(),
@@ -62,11 +63,21 @@ final class SqlTicketRepository implements TicketRepositoryInterface
     public function findByProjectId(ProjectId $projectId): array
     {
         $rows = $this->connection->fetchAllAssociative(
-            'SELECT id, project_id, sprint_id, title, description, status, reporter_id, assignee_id FROM ticket WHERE project_id = :project_id',
+            'SELECT id, project_id, number, sprint_id, title, description, status, reporter_id, assignee_id FROM ticket WHERE project_id = :project_id',
             ['project_id' => (string) $projectId],
         );
 
         return array_map(fn (array $row) => $this->hydrate($row), $rows);
+    }
+
+    public function nextTicketNumber(ProjectId $projectId): int
+    {
+        $max = $this->connection->fetchOne(
+            'SELECT MAX(number) FROM ticket WHERE project_id = :project_id',
+            ['project_id' => (string) $projectId],
+        );
+
+        return (int) $max + 1;
     }
 
     private function hydrate(array $row): Ticket
@@ -74,6 +85,7 @@ final class SqlTicketRepository implements TicketRepositoryInterface
         return Ticket::fromPersistence(
             new TicketId($row['id']),
             new ProjectId($row['project_id']),
+            (int) $row['number'],
             null !== $row['sprint_id'] ? new SprintId($row['sprint_id']) : null,
             $row['title'],
             $row['description'],

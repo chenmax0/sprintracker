@@ -51,9 +51,12 @@ final class CreateTicketHandler
             $assigneeId = new MemberId($payload->assigneeId);
         }
 
+        $projectId = new ProjectId($payload->projectId);
+
         $ticket = Ticket::create(
             $this->ids->generate(),
-            new ProjectId($payload->projectId),
+            $projectId,
+            $this->tickets->nextTicketNumber($projectId),
             $sprintId,
             $payload->title,
             $payload->description,
