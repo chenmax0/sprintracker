@@ -31,15 +31,17 @@ export function DemoKanbanBoard({ tickets, sprints, memberDirectory }: DemoKanba
     setLocalTickets((current) => current.map((ticket) => (ticket.id === ticketId ? { ...ticket, status } : ticket)))
   }
 
+  // The demo simulates a single sprint in progress: backlog tickets (no
+  // sprint assigned) have nothing to do on a sprint board and are hidden.
+  const sprintTickets = localTickets.filter((ticket) => ticket.sprintId !== null)
+
   const sprintNames = new Map((sprints ?? []).map((sprint) => [sprint.id, sprint.name]))
-  const selectedSprintLabel = selectedTicket
-    ? (selectedTicket.sprintId && sprintNames.get(selectedTicket.sprintId)) || 'Backlog'
-    : ''
+  const selectedSprintLabel = (selectedTicket?.sprintId && sprintNames.get(selectedTicket.sprintId)) || ''
 
   return (
     <>
       <KanbanBoard
-        tickets={localTickets}
+        tickets={sprintTickets}
         sprints={sprints}
         memberDirectory={memberDirectory}
         onStatusChange={handleStatusChange}
