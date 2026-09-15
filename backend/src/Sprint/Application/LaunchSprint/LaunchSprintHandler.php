@@ -2,26 +2,27 @@
 
 declare(strict_types=1);
 
-namespace App\Sprint\Application\CreateSprint;
+namespace App\Sprint\Application\LaunchSprint;
 
 use App\Sprint\Application\Port\ProjectTeamMembershipCheckerInterface;
 use App\Sprint\Application\Port\SprintIdGeneratorInterface;
 use App\Sprint\Domain\Exception\NotAProjectMemberException;
+use App\Sprint\Domain\Exception\SprintAlreadyActiveException;
 use App\Sprint\Domain\ProjectId;
 use App\Sprint\Domain\Sprint;
 use App\Sprint\Domain\SprintRepositoryInterface;
 
-final class CreateSprintHandler
+final class LaunchSprintHandler
 {
     public function __construct(
-        private CreateSprintValidator $validator,
+        private LaunchSprintValidator $validator,
         private SprintRepositoryInterface $sprints,
         private SprintIdGeneratorInterface $ids,
         private ProjectTeamMembershipCheckerInterface $projectTeamMembership,
     ) {
     }
 
-    public function handle(CreateSprintPayload $payload): Sprint
+    public function handle(LaunchSprintPayload $payload): Sprint
     {
         $this->validator->validate($payload);
 
@@ -30,9 +31,14 @@ final class CreateSprintHandler
         }
 
         $projectId = new ProjectId($payload->projectId);
+
+        if ($this->sprints->hasActiveSprint($projectId)) {
+            throw new SprintAlreadyActiveException();
+        }
+
         $number = $this->sprints->nextSprintNumber($projectId);
 
-        $sprint = Sprint::create(
+        $sprint = Sprint::launch(
             $this->ids->generate(),
             $projectId,
             $number,

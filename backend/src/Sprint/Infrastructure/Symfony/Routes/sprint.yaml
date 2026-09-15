@@ -1,6 +1,11 @@
-sprint_create:
+sprint_launch:
     path: /api/projects/{projectId}/sprints
-    controller: App\Sprint\Infrastructure\Symfony\Controllers\SprintController::create
+    controller: App\Sprint\Infrastructure\Symfony\Controllers\SprintController::launch
+    methods: [POST]
+
+sprint_complete:
+    path: /api/sprints/{sprintId}/complete
+    controller: App\Sprint\Infrastructure\Symfony\Controllers\SprintController::complete
     methods: [POST]
 
 sprint_list:

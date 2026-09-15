@@ -8,6 +8,7 @@ use App\Sprint\Domain\ProjectId;
 use App\Sprint\Domain\Sprint;
 use App\Sprint\Domain\SprintId;
 use App\Sprint\Domain\SprintRepositoryInterface;
+use App\Sprint\Domain\SprintStatus;
 use Doctrine\DBAL\Connection;
 
 final class SqlSprintRepository implements SprintRepositoryInterface
@@ -19,7 +20,7 @@ final class SqlSprintRepository implements SprintRepositoryInterface
     public function findById(SprintId $id): ?Sprint
     {
         $row = $this->connection->fetchAssociative(
-            'SELECT id, project_id, number, start_date, end_date FROM sprint WHERE id = :id',
+            'SELECT id, project_id, number, start_date, end_date, status FROM sprint WHERE id = :id',
             ['id' => (string) $id],
         );
 
@@ -34,11 +35,12 @@ final class SqlSprintRepository implements SprintRepositoryInterface
     {
         $this->connection->executeStatement(
             <<<'SQL'
-                INSERT INTO sprint (id, project_id, number, start_date, end_date)
-                VALUES (:id, :project_id, :number, :start_date, :end_date)
+                INSERT INTO sprint (id, project_id, number, start_date, end_date, status)
+                VALUES (:id, :project_id, :number, :start_date, :end_date, :status)
                 ON CONFLICT (id) DO UPDATE SET
                     start_date = EXCLUDED.start_date,
-                    end_date = EXCLUDED.end_date
+                    end_date = EXCLUDED.end_date,
+                    status = EXCLUDED.status
                 SQL,
             [
                 'id' => (string) $sprint->getId(),
@@ -46,6 +48,7 @@ final class SqlSprintRepository implements SprintRepositoryInterface
                 'number' => $sprint->getNumber(),
                 'start_date' => $sprint->getStartDate()->format('Y-m-d'),
                 'end_date' => $sprint->getEndDate()->format('Y-m-d'),
+                'status' => $sprint->getStatus()->value,
             ],
         );
     }
@@ -63,11 +66,21 @@ final class SqlSprintRepository implements SprintRepositoryInterface
     public function findByProjectId(ProjectId $projectId): array
     {
         $rows = $this->connection->fetchAllAssociative(
-            'SELECT id, project_id, number, start_date, end_date FROM sprint WHERE project_id = :project_id ORDER BY number ASC',
+            'SELECT id, project_id, number, start_date, end_date, status FROM sprint WHERE project_id = :project_id ORDER BY number ASC',
             ['project_id' => (string) $projectId],
         );
 
         return array_map(fn (array $row) => $this->hydrate($row), $rows);
+    }
+
+    public function hasActiveSprint(ProjectId $projectId): bool
+    {
+        $found = $this->connection->fetchOne(
+            "SELECT 1 FROM sprint WHERE project_id = :project_id AND status = 'active'",
+            ['project_id' => (string) $projectId],
+        );
+
+        return false !== $found;
     }
 
     private function hydrate(array $row): Sprint
@@ -78,6 +91,7 @@ final class SqlSprintRepository implements SprintRepositoryInterface
             (int) $row['number'],
             new \DateTimeImmutable($row['start_date']),
             new \DateTimeImmutable($row['end_date']),
+            SprintStatus::from($row['status']),
         );
     }
 }

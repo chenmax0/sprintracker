@@ -12,7 +12,7 @@ trait ResetsDatabase
 {
     private function resetDatabase(Connection $connection): void
     {
-        foreach (['comment', 'ticket', 'sprint', 'project', 'team_membership', 'team', '"user"'] as $table) {
+        foreach (['ticket_sprint_history', 'comment', 'ticket', 'sprint', 'project', 'team_membership', 'team', '"user"'] as $table) {
             $connection->executeStatement("DELETE FROM $table");
         }
     }

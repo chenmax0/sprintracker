@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Sprint\Application\CreateSprint;
+namespace App\Sprint\Application\LaunchSprint;
 
-final class CreateSprintPayload
+final class LaunchSprintPayload
 {
     public function __construct(
         public readonly string $projectId,

@@ -19,4 +19,6 @@ interface SprintRepositoryInterface
      * @return list<Sprint>
      */
     public function findByProjectId(ProjectId $projectId): array;
+
+    public function hasActiveSprint(ProjectId $projectId): bool;
 }

@@ -16,8 +16,12 @@ use App\Ticket\Application\GetTicket\GetTicketHandler;
 use App\Ticket\Application\GetTicket\GetTicketPayload;
 use App\Ticket\Application\ListComments\ListCommentsHandler;
 use App\Ticket\Application\ListComments\ListCommentsPayload;
+use App\Ticket\Application\ListTicketSprintHistory\ListTicketSprintHistoryHandler;
+use App\Ticket\Application\ListTicketSprintHistory\ListTicketSprintHistoryPayload;
+use App\Ticket\Application\ListTicketSprintHistory\TicketSprintHistoryEntry;
 use App\Ticket\Application\ListTickets\ListTicketsHandler;
 use App\Ticket\Application\ListTickets\ListTicketsPayload;
+use App\Ticket\Application\Port\TicketSprintHistoryRepositoryInterface;
 use App\Ticket\Application\UpdateTicketStatus\UpdateTicketStatusHandler;
 use App\Ticket\Application\UpdateTicketStatus\UpdateTicketStatusPayload;
 use App\Ticket\Domain\Comment;
@@ -59,7 +63,7 @@ final class TicketController
         return new JsonResponse($this->serializeTicket($ticket), 201);
     }
 
-    public function list(ListTicketsHandler $handler, #[CurrentUser] SecurityUser $user, string $projectId): JsonResponse
+    public function list(ListTicketsHandler $handler, TicketSprintHistoryRepositoryInterface $history, #[CurrentUser] SecurityUser $user, string $projectId): JsonResponse
     {
         try {
             $tickets = $handler->handle(new ListTicketsPayload($projectId, $user->getId()));
@@ -67,10 +71,15 @@ final class TicketController
             return new JsonResponse(['errors' => [$e->getMessage()]], 403);
         }
 
-        return new JsonResponse(array_map($this->serializeTicket(...), $tickets));
+        $counts = $history->countByTicketIds(array_map(static fn (Ticket $ticket) => (string) $ticket->getId(), $tickets));
+
+        return new JsonResponse(array_map(
+            fn (Ticket $ticket) => $this->serializeTicket($ticket, $counts[(string) $ticket->getId()] ?? 0),
+            $tickets,
+        ));
     }
 
-    public function show(GetTicketHandler $handler, #[CurrentUser] SecurityUser $user, string $ticketId): JsonResponse
+    public function show(GetTicketHandler $handler, TicketSprintHistoryRepositoryInterface $history, #[CurrentUser] SecurityUser $user, string $ticketId): JsonResponse
     {
         try {
             $ticket = $handler->handle(new GetTicketPayload($ticketId, $user->getId()));
@@ -80,7 +89,22 @@ final class TicketController
             return new JsonResponse(['errors' => [$e->getMessage()]], 403);
         }
 
-        return new JsonResponse($this->serializeTicket($ticket));
+        $count = $history->countByTicketIds([(string) $ticket->getId()])[(string) $ticket->getId()] ?? 0;
+
+        return new JsonResponse($this->serializeTicket($ticket, $count));
+    }
+
+    public function sprintHistory(ListTicketSprintHistoryHandler $handler, #[CurrentUser] SecurityUser $user, string $ticketId): JsonResponse
+    {
+        try {
+            $entries = $handler->handle(new ListTicketSprintHistoryPayload($ticketId, $user->getId()));
+        } catch (TicketNotFoundException $e) {
+            return new JsonResponse(['errors' => [$e->getMessage()]], 404);
+        } catch (NotAProjectMemberException $e) {
+            return new JsonResponse(['errors' => [$e->getMessage()]], 403);
+        }
+
+        return new JsonResponse(array_map($this->serializeHistoryEntry(...), $entries));
     }
 
     public function assign(AssignTicketHandler $handler, Request $request, #[CurrentUser] SecurityUser $user, string $ticketId): JsonResponse
@@ -155,7 +179,7 @@ final class TicketController
         return new JsonResponse(array_map($this->serializeComment(...), $comments));
     }
 
-    private function serializeTicket(Ticket $ticket): array
+    private function serializeTicket(Ticket $ticket, int $carriedOverCount = 0): array
     {
         return [
             'id' => (string) $ticket->getId(),
@@ -166,6 +190,15 @@ final class TicketController
             'status' => $ticket->getStatus()->value,
             'reporterId' => (string) $ticket->getReporterId(),
             'assigneeId' => null !== $ticket->getAssigneeId() ? (string) $ticket->getAssigneeId() : null,
+            'carriedOverCount' => $carriedOverCount,
+        ];
+    }
+
+    private function serializeHistoryEntry(TicketSprintHistoryEntry $entry): array
+    {
+        return [
+            'sprintId' => $entry->sprintId,
+            'recordedAt' => $entry->recordedAt->format(\DateTimeInterface::ATOM),
         ];
     }
 

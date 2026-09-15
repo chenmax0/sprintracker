@@ -85,6 +85,9 @@ services:
     App\Sprint\Application\Port\ProjectTeamMembershipCheckerInterface:
         alias: App\Sprint\Infrastructure\Persistence\Sql\SqlProjectTeamMembershipChecker
 
+    App\Sprint\Application\Port\SprintTicketRolloverInterface:
+        alias: App\Sprint\Infrastructure\Persistence\Sql\SqlSprintTicketRollover
+
     App\Ticket\Domain\TicketRepositoryInterface:
         alias: App\Ticket\Infrastructure\Persistence\Sql\SqlTicketRepository
 
@@ -96,6 +99,9 @@ services:
 
     App\Ticket\Application\Port\SprintLookupInterface:
         alias: App\Ticket\Infrastructure\Persistence\Sql\SqlSprintLookup
+
+    App\Ticket\Application\Port\TicketSprintHistoryRepositoryInterface:
+        alias: App\Ticket\Infrastructure\Persistence\Sql\SqlTicketSprintHistoryRepository
 
     App\Demo\Application\Port\DemoRepositoryInterface:
         alias: App\Demo\Infrastructure\Persistence\Sql\SqlDemoRepository

@@ -32,3 +32,8 @@ ticket_list_comments:
     path: /api/tickets/{ticketId}/comments
     controller: App\Ticket\Infrastructure\Symfony\Controllers\TicketController::listComments
     methods: [GET]
+
+ticket_sprint_history:
+    path: /api/tickets/{ticketId}/sprint-history
+    controller: App\Ticket\Infrastructure\Symfony\Controllers\TicketController::sprintHistory
+    methods: [GET]

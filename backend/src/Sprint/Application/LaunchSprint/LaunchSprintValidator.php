@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Sprint\Application\CreateSprint;
+namespace App\Sprint\Application\LaunchSprint;
 
 use Assert\Assert;
 
-final class CreateSprintValidator
+final class LaunchSprintValidator
 {
-    public function validate(CreateSprintPayload $payload): void
+    public function validate(LaunchSprintPayload $payload): void
     {
         Assert::lazy()
             ->that($payload->projectId, 'projectId')->notBlank()
