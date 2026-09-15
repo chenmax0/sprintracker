@@ -2,6 +2,9 @@ import { type FormEvent, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { ApiError } from '../../lib/apiClient'
 import { MemberLabel } from '../../lib/MemberLabel'
+import { toMemberDirectory } from '../../lib/memberDirectory'
+import { useProject } from '../projects/hooks'
+import { useTeamMembers } from '../teams/hooks'
 import { useAddComment, useAssignTicket, useComments, useTicket } from './hooks'
 
 export function TicketPage() {
@@ -9,6 +12,9 @@ export function TicketPage() {
   if (!ticketId) throw new Error('Missing ticketId')
 
   const { data: ticket } = useTicket(ticketId)
+  const { data: project } = useProject(ticket?.projectId ?? '')
+  const { data: members } = useTeamMembers(project?.teamId ?? '')
+  const memberDirectory = toMemberDirectory(members)
   const assign = useAssignTicket(ticketId)
   const { data: comments } = useComments(ticketId)
   const addComment = useAddComment(ticketId)
@@ -45,24 +51,33 @@ export function TicketPage() {
         </div>
         <div>
           <span className="block text-xs text-gray-500">Rapporté par</span>
-          {ticket && <MemberLabel memberId={ticket.reporterId} />}
+          {ticket && <MemberLabel memberId={ticket.reporterId} directory={memberDirectory} />}
         </div>
         <div>
           <span className="block text-xs text-gray-500">Assigné à</span>
-          {ticket?.assigneeId ? <MemberLabel memberId={ticket.assigneeId} /> : <span className="text-gray-400">Personne</span>}
+          {ticket?.assigneeId ? (
+            <MemberLabel memberId={ticket.assigneeId} directory={memberDirectory} />
+          ) : (
+            <span className="text-gray-400">Personne</span>
+          )}
         </div>
       </section>
 
       <section>
         <h2 className="mb-3 text-sm font-semibold text-gray-700">Réassigner</h2>
         <form onSubmit={handleAssign} className="flex max-w-sm gap-2">
-          <input
-            type="text"
+          <select
             value={assigneeId}
             onChange={(e) => setAssigneeId(e.target.value)}
-            placeholder="ID du membre (vide = désassigner)"
             className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
-          />
+          >
+            <option value="">Personne</option>
+            {members?.map((member) => (
+              <option key={member.memberId} value={member.memberId}>
+                {member.name}
+              </option>
+            ))}
+          </select>
           <button
             type="submit"
             disabled={assign.isPending}
@@ -84,7 +99,7 @@ export function TicketPage() {
           {comments?.map((comment) => (
             <li key={comment.id} className="rounded-md border border-gray-200 bg-white p-3 text-sm">
               <div className="mb-1 flex items-center gap-2 text-xs text-gray-500">
-                <MemberLabel memberId={comment.authorId} />
+                <MemberLabel memberId={comment.authorId} directory={memberDirectory} />
                 <span>{new Date(comment.createdAt).toLocaleString()}</span>
               </div>
               <p className="text-gray-800">{comment.content}</p>

@@ -2,6 +2,7 @@ import { type FormEvent, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { ApiError } from '../../lib/apiClient'
 import { MemberLabel } from '../../lib/MemberLabel'
+import { toMemberDirectory } from '../../lib/memberDirectory'
 import { useCreateProject, useProjects } from '../projects/hooks'
 import { useAddTeamMember, useTeam, useTeamMembers } from './hooks'
 
@@ -11,6 +12,7 @@ export function TeamPage() {
 
   const { data: team } = useTeam(teamId)
   const { data: members } = useTeamMembers(teamId)
+  const memberDirectory = toMemberDirectory(members)
   const addMember = useAddTeamMember(teamId)
   const { data: projects } = useProjects(teamId)
   const createProject = useCreateProject(teamId)
@@ -42,7 +44,7 @@ export function TeamPage() {
         <ul className="mb-3 flex flex-col gap-1">
           {members?.map((member) => (
             <li key={member.memberId} className="flex items-center gap-2 text-sm text-gray-700">
-              <MemberLabel memberId={member.memberId} />
+              <MemberLabel memberId={member.memberId} directory={memberDirectory} />
               <span className="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-500">{member.role}</span>
             </li>
           ))}

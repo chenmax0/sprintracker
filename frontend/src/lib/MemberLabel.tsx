@@ -1,14 +1,21 @@
 import { useMe } from '../features/auth/hooks'
+import type { MemberDirectory } from './memberDirectory'
 
-/**
- * The API only exposes member/reporter/assignee/author as raw ids - there's no
- * "look up a user's name by id" endpoint yet. Show "Moi" for the current user
- * and a shortened id otherwise, rather than a full UUID.
- */
-export function MemberLabel({ memberId }: { memberId: string }) {
+export function MemberLabel({ memberId, directory }: { memberId: string; directory?: MemberDirectory }) {
   const { data: me } = useMe()
+  const member = directory?.get(memberId)
+  const isMe = me?.id === memberId
 
-  if (me?.id === memberId) {
+  if (member) {
+    return (
+      <span title={member.email}>
+        {member.name}
+        {isMe && ' (moi)'}
+      </span>
+    )
+  }
+
+  if (isMe) {
     return <span>Moi</span>
   }
 

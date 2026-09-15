@@ -19,7 +19,11 @@ export function useCreateTeam() {
 }
 
 export function useTeamMembers(teamId: string) {
-  return useQuery({ queryKey: ['teams', teamId, 'members'], queryFn: () => listTeamMembers(teamId) })
+  return useQuery({
+    queryKey: ['teams', teamId, 'members'],
+    queryFn: () => listTeamMembers(teamId),
+    enabled: teamId !== '',
+  })
 }
 
 export function useAddTeamMember(teamId: string) {

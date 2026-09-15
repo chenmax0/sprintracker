@@ -6,7 +6,11 @@ export function useProjects(teamId: string) {
 }
 
 export function useProject(projectId: string) {
-  return useQuery({ queryKey: ['projects', projectId], queryFn: () => getProject(projectId) })
+  return useQuery({
+    queryKey: ['projects', projectId],
+    queryFn: () => getProject(projectId),
+    enabled: projectId !== '',
+  })
 }
 
 export function useCreateProject(teamId: string) {

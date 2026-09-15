@@ -14,6 +14,8 @@ import {
 import { type CSSProperties, useState } from 'react'
 import { Link } from 'react-router'
 import { ApiError } from '../../lib/apiClient'
+import { MemberLabel } from '../../lib/MemberLabel'
+import type { MemberDirectory } from '../../lib/memberDirectory'
 import type { Sprint } from '../sprints/api'
 import type { Ticket, TicketStatus } from './api'
 import { useUpdateTicketStatus } from './hooks'
@@ -27,10 +29,12 @@ const COLUMNS: { status: TicketStatus; label: string }[] = [
 function TicketCardContent({
   ticket,
   sprintLabel,
+  memberDirectory,
   dragHandleProps,
 }: {
   ticket: Ticket
   sprintLabel: string
+  memberDirectory: MemberDirectory
   dragHandleProps?: Record<string, unknown>
 }) {
   return (
@@ -47,13 +51,28 @@ function TicketCardContent({
         <Link to={`/tickets/${ticket.id}`} className="font-medium text-gray-900 hover:underline">
           {ticket.title}
         </Link>
-        <div className="mt-1 text-xs text-gray-400">{sprintLabel}</div>
+        <div className="mt-1 flex items-center justify-between text-xs text-gray-400">
+          <span>{sprintLabel}</span>
+          {ticket.assigneeId && (
+            <span className="text-gray-500">
+              <MemberLabel memberId={ticket.assigneeId} directory={memberDirectory} />
+            </span>
+          )}
+        </div>
       </div>
     </div>
   )
 }
 
-function DraggableTicketCard({ ticket, sprintLabel }: { ticket: Ticket; sprintLabel: string }) {
+function DraggableTicketCard({
+  ticket,
+  sprintLabel,
+  memberDirectory,
+}: {
+  ticket: Ticket
+  sprintLabel: string
+  memberDirectory: MemberDirectory
+}) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: ticket.id })
 
   const style: CSSProperties = {
@@ -63,7 +82,12 @@ function DraggableTicketCard({ ticket, sprintLabel }: { ticket: Ticket; sprintLa
 
   return (
     <div ref={setNodeRef} style={style}>
-      <TicketCardContent ticket={ticket} sprintLabel={sprintLabel} dragHandleProps={{ ...listeners, ...attributes }} />
+      <TicketCardContent
+        ticket={ticket}
+        sprintLabel={sprintLabel}
+        memberDirectory={memberDirectory}
+        dragHandleProps={{ ...listeners, ...attributes }}
+      />
     </div>
   )
 }
@@ -73,11 +97,13 @@ function Column({
   label,
   tickets,
   sprintNames,
+  memberDirectory,
 }: {
   status: TicketStatus
   label: string
   tickets: Ticket[]
   sprintNames: Map<string, string>
+  memberDirectory: MemberDirectory
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: status })
 
@@ -97,6 +123,7 @@ function Column({
             key={ticket.id}
             ticket={ticket}
             sprintLabel={(ticket.sprintId && sprintNames.get(ticket.sprintId)) || 'Backlog'}
+            memberDirectory={memberDirectory}
           />
         ))}
         {tickets.length === 0 && <p className="px-1 text-xs text-gray-400">Aucun ticket</p>}
@@ -105,7 +132,17 @@ function Column({
   )
 }
 
-export function KanbanBoard({ projectId, tickets, sprints }: { projectId: string; tickets: Ticket[]; sprints?: Sprint[] }) {
+export function KanbanBoard({
+  projectId,
+  tickets,
+  sprints,
+  memberDirectory,
+}: {
+  projectId: string
+  tickets: Ticket[]
+  sprints?: Sprint[]
+  memberDirectory: MemberDirectory
+}) {
   const updateStatus = useUpdateTicketStatus(projectId)
   const [activeTicket, setActiveTicket] = useState<Ticket | null>(null)
   const sprintNames = new Map((sprints ?? []).map((sprint) => [sprint.id, sprint.name]))
@@ -160,6 +197,7 @@ export function KanbanBoard({ projectId, tickets, sprints }: { projectId: string
               label={column.label}
               tickets={tickets.filter((ticket) => ticket.status === column.status)}
               sprintNames={sprintNames}
+              memberDirectory={memberDirectory}
             />
           ))}
         </div>
@@ -168,6 +206,7 @@ export function KanbanBoard({ projectId, tickets, sprints }: { projectId: string
             <TicketCardContent
               ticket={activeTicket}
               sprintLabel={(activeTicket.sprintId && sprintNames.get(activeTicket.sprintId)) || 'Backlog'}
+              memberDirectory={memberDirectory}
             />
           )}
         </DragOverlay>

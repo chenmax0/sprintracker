@@ -8,6 +8,8 @@ export interface Team {
 export interface TeamMember {
   memberId: string
   role: 'owner' | 'member'
+  email: string
+  name: string
 }
 
 export function listTeams(): Promise<Team[]> {

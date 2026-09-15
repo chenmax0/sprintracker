@@ -1,7 +1,9 @@
 import { type FormEvent, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { ApiError } from '../../lib/apiClient'
+import { toMemberDirectory } from '../../lib/memberDirectory'
 import { useCreateSprint, useSprints } from '../sprints/hooks'
+import { useTeamMembers } from '../teams/hooks'
 import { KanbanBoard } from '../tickets/KanbanBoard'
 import { useCreateTicket, useTickets } from '../tickets/hooks'
 import { useProject } from './hooks'
@@ -15,6 +17,8 @@ export function ProjectPage() {
   const createSprint = useCreateSprint(projectId)
   const { data: tickets } = useTickets(projectId)
   const createTicket = useCreateTicket(projectId)
+  const { data: members } = useTeamMembers(project?.teamId ?? '')
+  const memberDirectory = toMemberDirectory(members)
 
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
@@ -139,7 +143,7 @@ export function ProjectPage() {
           </p>
         )}
 
-        {tickets && <KanbanBoard projectId={projectId} tickets={tickets} sprints={sprints} />}
+        {tickets && <KanbanBoard projectId={projectId} tickets={tickets} sprints={sprints} memberDirectory={memberDirectory} />}
       </section>
     </div>
   )
