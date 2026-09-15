@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Team\Infrastructure\Symfony\Controllers;
 
 use App\Auth\Infrastructure\Security\SecurityUser;
+use App\Shared\Infrastructure\Symfony\JsonBody;
 use App\Team\Application\AddTeamMember\AddTeamMemberHandler;
 use App\Team\Application\AddTeamMember\AddTeamMemberPayload;
 use App\Team\Application\CreateTeam\CreateTeamHandler;
@@ -28,9 +29,9 @@ final class TeamController
 {
     public function create(CreateTeamHandler $handler, Request $request, #[CurrentUser] SecurityUser $user): JsonResponse
     {
-        $data = json_decode($request->getContent(), true) ?? [];
+        $data = new JsonBody($request);
 
-        $payload = new CreateTeamPayload($data['name'] ?? '', $user->getId());
+        $payload = new CreateTeamPayload($data->string('name'), $user->getId());
 
         try {
             $team = $handler->handle($payload);
@@ -77,9 +78,9 @@ final class TeamController
 
     public function addMember(AddTeamMemberHandler $handler, Request $request, #[CurrentUser] SecurityUser $user, string $teamId): JsonResponse
     {
-        $data = json_decode($request->getContent(), true) ?? [];
+        $data = new JsonBody($request);
 
-        $payload = new AddTeamMemberPayload($teamId, $user->getId(), $data['email'] ?? '');
+        $payload = new AddTeamMemberPayload($teamId, $user->getId(), $data->string('email'));
 
         try {
             $membership = $handler->handle($payload);

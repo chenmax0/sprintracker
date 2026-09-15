@@ -15,6 +15,7 @@ use App\Project\Domain\Exception\NotATeamMemberException;
 use App\Project\Domain\Exception\NotTeamOwnerException;
 use App\Project\Domain\Exception\ProjectNotFoundException;
 use App\Project\Domain\Project;
+use App\Shared\Infrastructure\Symfony\JsonBody;
 use Assert\LazyAssertionException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -24,9 +25,9 @@ final class ProjectController
 {
     public function create(CreateProjectHandler $handler, Request $request, #[CurrentUser] SecurityUser $user, string $teamId): JsonResponse
     {
-        $data = json_decode($request->getContent(), true) ?? [];
+        $data = new JsonBody($request);
 
-        $payload = new CreateProjectPayload($teamId, $user->getId(), $data['name'] ?? '');
+        $payload = new CreateProjectPayload($teamId, $user->getId(), $data->string('name'));
 
         try {
             $project = $handler->handle($payload);

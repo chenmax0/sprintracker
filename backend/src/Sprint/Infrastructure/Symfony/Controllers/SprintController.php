@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Sprint\Infrastructure\Symfony\Controllers;
 
 use App\Auth\Infrastructure\Security\SecurityUser;
+use App\Shared\Infrastructure\Symfony\JsonBody;
 use App\Sprint\Application\CreateSprint\CreateSprintHandler;
 use App\Sprint\Application\CreateSprint\CreateSprintPayload;
 use App\Sprint\Application\ListSprints\ListSprintsHandler;
@@ -21,13 +22,13 @@ final class SprintController
 {
     public function create(CreateSprintHandler $handler, Request $request, #[CurrentUser] SecurityUser $user, string $projectId): JsonResponse
     {
-        $data = json_decode($request->getContent(), true) ?? [];
+        $data = new JsonBody($request);
 
         $payload = new CreateSprintPayload(
             $projectId,
             $user->getId(),
-            $data['startDate'] ?? '',
-            $data['endDate'] ?? '',
+            $data->string('startDate'),
+            $data->string('endDate'),
         );
 
         try {

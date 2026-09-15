@@ -9,6 +9,7 @@ use App\Auth\Application\RegisterUser\RegisterUserPayload;
 use App\Auth\Domain\Exception\EmailAlreadyUsedException;
 use App\Auth\Domain\Exception\InvalidEmailException;
 use App\Auth\Infrastructure\Security\SecurityUser;
+use App\Shared\Infrastructure\Symfony\JsonBody;
 use Assert\LazyAssertionException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,12 +19,12 @@ final class AuthenticationController
 {
     public function register(RegisterUserHandler $handler, Request $request): JsonResponse
     {
-        $data = json_decode($request->getContent(), true) ?? [];
+        $data = new JsonBody($request);
 
         $payload = new RegisterUserPayload(
-            $data['email'] ?? '',
-            $data['name'] ?? '',
-            $data['password'] ?? '',
+            $data->string('email'),
+            $data->string('name'),
+            $data->string('password'),
         );
 
         try {

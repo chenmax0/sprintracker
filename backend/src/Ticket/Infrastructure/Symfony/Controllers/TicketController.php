@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Ticket\Infrastructure\Symfony\Controllers;
 
 use App\Auth\Infrastructure\Security\SecurityUser;
+use App\Shared\Infrastructure\Symfony\JsonBody;
 use App\Ticket\Application\AddComment\AddCommentHandler;
 use App\Ticket\Application\AddComment\AddCommentPayload;
 use App\Ticket\Application\AssignTicket\AssignTicketHandler;
@@ -34,15 +35,15 @@ final class TicketController
 {
     public function create(CreateTicketHandler $handler, Request $request, #[CurrentUser] SecurityUser $user, string $projectId): JsonResponse
     {
-        $data = json_decode($request->getContent(), true) ?? [];
+        $data = new JsonBody($request);
 
         $payload = new CreateTicketPayload(
             $projectId,
             $user->getId(),
-            $data['title'] ?? '',
-            $data['description'] ?? null,
-            $data['sprintId'] ?? null,
-            $data['assigneeId'] ?? null,
+            $data->string('title'),
+            $data->nullableString('description'),
+            $data->nullableString('sprintId'),
+            $data->nullableString('assigneeId'),
         );
 
         try {
@@ -84,9 +85,9 @@ final class TicketController
 
     public function assign(AssignTicketHandler $handler, Request $request, #[CurrentUser] SecurityUser $user, string $ticketId): JsonResponse
     {
-        $data = json_decode($request->getContent(), true) ?? [];
+        $data = new JsonBody($request);
 
-        $payload = new AssignTicketPayload($ticketId, $user->getId(), $data['assigneeId'] ?? null);
+        $payload = new AssignTicketPayload($ticketId, $user->getId(), $data->nullableString('assigneeId'));
 
         try {
             $ticket = $handler->handle($payload);
@@ -105,9 +106,9 @@ final class TicketController
 
     public function updateStatus(UpdateTicketStatusHandler $handler, Request $request, #[CurrentUser] SecurityUser $user, string $ticketId): JsonResponse
     {
-        $data = json_decode($request->getContent(), true) ?? [];
+        $data = new JsonBody($request);
 
-        $payload = new UpdateTicketStatusPayload($ticketId, $user->getId(), $data['status'] ?? '');
+        $payload = new UpdateTicketStatusPayload($ticketId, $user->getId(), $data->string('status'));
 
         try {
             $ticket = $handler->handle($payload);
@@ -124,9 +125,9 @@ final class TicketController
 
     public function addComment(AddCommentHandler $handler, Request $request, #[CurrentUser] SecurityUser $user, string $ticketId): JsonResponse
     {
-        $data = json_decode($request->getContent(), true) ?? [];
+        $data = new JsonBody($request);
 
-        $payload = new AddCommentPayload($ticketId, $user->getId(), $data['content'] ?? '');
+        $payload = new AddCommentPayload($ticketId, $user->getId(), $data->string('content'));
 
         try {
             $comment = $handler->handle($payload);
