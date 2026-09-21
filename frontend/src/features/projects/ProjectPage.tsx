@@ -11,6 +11,7 @@ import { useTickets } from '../tickets/hooks'
 import { ProjectKanbanBoard } from '../tickets/ProjectKanbanBoard'
 import { TicketPanel } from '../tickets/TicketPanel'
 import { useProject } from './hooks'
+import { ProjectSettingsModal } from './ProjectSettingsModal'
 
 export function ProjectPage() {
   const { projectId } = useParams<{ projectId: string }>()
@@ -23,6 +24,7 @@ export function ProjectPage() {
   const memberDirectory = toMemberDirectory(members)
 
   const [showMembers, setShowMembers] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
   const [showCreateTicket, setShowCreateTicket] = useState(false)
   const [sprintModal, setSprintModal] = useState<'launch' | 'complete' | null>(null)
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null)
@@ -51,13 +53,24 @@ export function ProjectPage() {
               <h1 className="text-2xl font-semibold text-gray-900">{project?.name}</h1>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={() => setShowMembers(true)}
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
-          >
-            Membres
-          </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setShowMembers(true)}
+              className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+            >
+              Membres
+            </button>
+            {project?.isOwner && (
+              <button
+                type="button"
+                onClick={() => setShowSettings(true)}
+                className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+              >
+                Paramètres
+              </button>
+            )}
+          </div>
         </div>
 
         <Card>
@@ -153,6 +166,7 @@ export function ProjectPage() {
         />
       )}
       {selectedTicketId && <TicketPanel ticketId={selectedTicketId} onClose={() => setSelectedTicketId(null)} />}
+      {showSettings && project && <ProjectSettingsModal project={project} onClose={() => setShowSettings(false)} />}
     </div>
   )
 }

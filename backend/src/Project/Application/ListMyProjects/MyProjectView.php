@@ -11,6 +11,7 @@ final class MyProjectView
         public readonly string $teamId,
         public readonly string $teamName,
         public readonly string $name,
+        public readonly bool $isOwner,
     ) {
     }
 }

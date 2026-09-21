@@ -22,3 +22,13 @@ project_show:
     path: /api/projects/{projectId}
     controller: App\Project\Infrastructure\Symfony\Controllers\ProjectController::show
     methods: [GET]
+
+project_rename:
+    path: /api/projects/{projectId}
+    controller: App\Project\Infrastructure\Symfony\Controllers\ProjectController::rename
+    methods: [PATCH]
+
+project_delete:
+    path: /api/projects/{projectId}
+    controller: App\Project\Infrastructure\Symfony\Controllers\ProjectController::delete
+    methods: [DELETE]

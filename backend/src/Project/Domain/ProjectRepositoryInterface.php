@@ -10,6 +10,8 @@ interface ProjectRepositoryInterface
 
     public function save(Project $project): void;
 
+    public function delete(ProjectId $id): void;
+
     /**
      * @return list<Project>
      */

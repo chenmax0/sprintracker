@@ -9,6 +9,8 @@ use App\Project\Application\CreateProject\CreateProjectHandler;
 use App\Project\Application\CreateProject\CreateProjectPayload;
 use App\Project\Application\CreateProjectWithTeam\CreateProjectWithTeamHandler;
 use App\Project\Application\CreateProjectWithTeam\CreateProjectWithTeamPayload;
+use App\Project\Application\DeleteProject\DeleteProjectHandler;
+use App\Project\Application\DeleteProject\DeleteProjectPayload;
 use App\Project\Application\GetProject\GetProjectHandler;
 use App\Project\Application\GetProject\GetProjectPayload;
 use App\Project\Application\ListMyProjects\ListMyProjectsHandler;
@@ -16,6 +18,9 @@ use App\Project\Application\ListMyProjects\ListMyProjectsPayload;
 use App\Project\Application\ListMyProjects\MyProjectView;
 use App\Project\Application\ListProjects\ListProjectsHandler;
 use App\Project\Application\ListProjects\ListProjectsPayload;
+use App\Project\Application\Port\TeamOwnershipCheckerInterface;
+use App\Project\Application\RenameProject\RenameProjectHandler;
+use App\Project\Application\RenameProject\RenameProjectPayload;
 use App\Project\Domain\Exception\NotATeamMemberException;
 use App\Project\Domain\Exception\NotTeamOwnerException;
 use App\Project\Domain\Exception\ProjectNotFoundException;
@@ -42,7 +47,7 @@ final class ProjectController
             return new JsonResponse(['errors' => [$e->getMessage()]], 403);
         }
 
-        return new JsonResponse($this->serializeProject($project), 201);
+        return new JsonResponse($this->serializeProject($project, true), 201);
     }
 
     public function createWithTeam(CreateProjectWithTeamHandler $handler, Request $request, #[CurrentUser] SecurityUser $user): JsonResponse
@@ -55,7 +60,7 @@ final class ProjectController
             return $this->validationErrorResponse($e);
         }
 
-        return new JsonResponse($this->serializeProject($project), 201);
+        return new JsonResponse($this->serializeProject($project, true), 201);
     }
 
     public function list(ListProjectsHandler $handler, #[CurrentUser] SecurityUser $user, string $teamId): JsonResponse
@@ -76,7 +81,7 @@ final class ProjectController
         return new JsonResponse(array_map($this->serializeMyProject(...), $projects));
     }
 
-    public function show(GetProjectHandler $handler, #[CurrentUser] SecurityUser $user, string $projectId): JsonResponse
+    public function show(GetProjectHandler $handler, TeamOwnershipCheckerInterface $teamOwnership, #[CurrentUser] SecurityUser $user, string $projectId): JsonResponse
     {
         try {
             $project = $handler->handle(new GetProjectPayload($projectId, $user->getId()));
@@ -86,15 +91,48 @@ final class ProjectController
             return new JsonResponse(['errors' => [$e->getMessage()]], 403);
         }
 
-        return new JsonResponse($this->serializeProject($project));
+        $isOwner = $teamOwnership->isOwner((string) $project->getTeamId(), $user->getId());
+
+        return new JsonResponse($this->serializeProject($project, $isOwner));
     }
 
-    private function serializeProject(Project $project): array
+    public function rename(RenameProjectHandler $handler, Request $request, #[CurrentUser] SecurityUser $user, string $projectId): JsonResponse
+    {
+        $data = new JsonBody($request);
+
+        try {
+            $project = $handler->handle(new RenameProjectPayload($projectId, $user->getId(), $data->string('name')));
+        } catch (LazyAssertionException $e) {
+            return $this->validationErrorResponse($e);
+        } catch (ProjectNotFoundException $e) {
+            return new JsonResponse(['errors' => [$e->getMessage()]], 404);
+        } catch (NotTeamOwnerException $e) {
+            return new JsonResponse(['errors' => [$e->getMessage()]], 403);
+        }
+
+        return new JsonResponse($this->serializeProject($project, true));
+    }
+
+    public function delete(DeleteProjectHandler $handler, #[CurrentUser] SecurityUser $user, string $projectId): JsonResponse
+    {
+        try {
+            $handler->handle(new DeleteProjectPayload($projectId, $user->getId()));
+        } catch (ProjectNotFoundException $e) {
+            return new JsonResponse(['errors' => [$e->getMessage()]], 404);
+        } catch (NotTeamOwnerException $e) {
+            return new JsonResponse(['errors' => [$e->getMessage()]], 403);
+        }
+
+        return new JsonResponse(null, 204);
+    }
+
+    private function serializeProject(Project $project, bool $isOwner = false): array
     {
         return [
             'id' => (string) $project->getId(),
             'teamId' => (string) $project->getTeamId(),
             'name' => $project->getName(),
+            'isOwner' => $isOwner,
         ];
     }
 
@@ -105,6 +143,7 @@ final class ProjectController
             'teamId' => $project->teamId,
             'teamName' => $project->teamName,
             'name' => $project->name,
+            'isOwner' => $project->isOwner,
         ];
     }
 

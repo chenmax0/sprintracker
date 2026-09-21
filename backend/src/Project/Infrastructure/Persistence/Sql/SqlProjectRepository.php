@@ -58,4 +58,24 @@ final class SqlProjectRepository implements ProjectRepositoryInterface
             ],
         );
     }
+
+    public function delete(ProjectId $id): void
+    {
+        $projectId = (string) $id;
+
+        // No ON DELETE CASCADE on these FKs, so children are removed by hand,
+        // in dependency order (history/comments before the tickets/sprints
+        // they reference, those before the project itself).
+        $this->connection->executeStatement(
+            'DELETE FROM ticket_sprint_history WHERE ticket_id IN (SELECT id FROM ticket WHERE project_id = :project_id)',
+            ['project_id' => $projectId],
+        );
+        $this->connection->executeStatement(
+            'DELETE FROM comment WHERE ticket_id IN (SELECT id FROM ticket WHERE project_id = :project_id)',
+            ['project_id' => $projectId],
+        );
+        $this->connection->executeStatement('DELETE FROM ticket WHERE project_id = :project_id', ['project_id' => $projectId]);
+        $this->connection->executeStatement('DELETE FROM sprint WHERE project_id = :project_id', ['project_id' => $projectId]);
+        $this->connection->executeStatement('DELETE FROM project WHERE id = :id', ['id' => $projectId]);
+    }
 }

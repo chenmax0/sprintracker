@@ -23,6 +23,11 @@ final class Project
         return new self($id, $teamId, $name);
     }
 
+    public function rename(string $name): void
+    {
+        $this->name = $name;
+    }
+
     public function getId(): ProjectId
     {
         return $this->id;
