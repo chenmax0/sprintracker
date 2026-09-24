@@ -13,7 +13,7 @@ import {
 } from '@dnd-kit/core'
 import { arrayMove, horizontalListSortingStrategy, SortableContext, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { type CSSProperties, useState } from 'react'
+import { type CSSProperties, type FormEvent, useState } from 'react'
 import { Link } from 'react-router'
 import { MemberLabel } from '../../lib/MemberLabel'
 import type { MemberDirectory } from '../../lib/memberDirectory'
@@ -102,6 +102,67 @@ function DraggableTicketCard({ ticket, memberDirectory, ticketHref, onTicketClic
   )
 }
 
+interface ColumnHeaderProps {
+  name: string
+  ticketCount: number
+  editingColumns: boolean
+  onRename?: (name: string) => void
+  onRequestDelete?: () => void
+  dragHandleProps?: Record<string, unknown>
+}
+
+function ColumnHeader({ name, ticketCount, editingColumns, onRename, onRequestDelete, dragHandleProps }: ColumnHeaderProps) {
+  const [isEditing, setIsEditing] = useState(false)
+  const [draftName, setDraftName] = useState(name)
+
+  function commitRename(event: FormEvent) {
+    event.preventDefault()
+    setIsEditing(false)
+    if (draftName.trim() && draftName !== name) {
+      onRename?.(draftName.trim())
+    } else {
+      setDraftName(name)
+    }
+  }
+
+  if (isEditing) {
+    return (
+      <form onSubmit={commitRename}>
+        <input
+          autoFocus
+          value={draftName}
+          onChange={(e) => setDraftName(e.target.value)}
+          onBlur={commitRename}
+          className="w-full rounded border border-indigo-300 bg-white px-1.5 py-0.5 text-xs font-semibold text-gray-700"
+        />
+      </form>
+    )
+  }
+
+  return (
+    <div className="flex items-center justify-between gap-2">
+      <h3
+        {...dragHandleProps}
+        onClick={editingColumns ? () => setIsEditing(true) : undefined}
+        className={`truncate text-xs font-semibold tracking-wide text-gray-500 uppercase ${editingColumns ? 'cursor-pointer' : ''}`}
+        title={editingColumns ? 'Cliquer pour renommer' : dragHandleProps ? 'Maintenir pour réordonner' : undefined}
+      >
+        {name} <span className="text-gray-400">({ticketCount})</span>
+      </h3>
+      {editingColumns && (
+        <button
+          type="button"
+          onClick={onRequestDelete}
+          aria-label={`Supprimer la colonne "${name}"`}
+          className="shrink-0 text-gray-300 hover:text-red-500"
+        >
+          ✕
+        </button>
+      )}
+    </div>
+  )
+}
+
 interface ColumnBodyProps {
   column: Column
   tickets: Ticket[]
@@ -109,9 +170,22 @@ interface ColumnBodyProps {
   ticketHref?: (ticketId: string) => string
   onTicketClick?: (ticket: Ticket) => void
   reorderable: boolean
+  editingColumns: boolean
+  onRenameColumn?: (columnId: string, name: string) => void
+  onRequestDeleteColumn?: (column: Column) => void
 }
 
-function ColumnBody({ column, tickets, memberDirectory, ticketHref, onTicketClick, reorderable }: ColumnBodyProps) {
+function ColumnBody({
+  column,
+  tickets,
+  memberDirectory,
+  ticketHref,
+  onTicketClick,
+  reorderable,
+  editingColumns,
+  onRenameColumn,
+  onRequestDeleteColumn,
+}: ColumnBodyProps) {
   const { setNodeRef: setDropRef, isOver } = useDroppable({ id: column.id })
   const {
     attributes,
@@ -130,13 +204,14 @@ function ColumnBody({ column, tickets, memberDirectory, ticketHref, onTicketClic
 
   return (
     <div ref={setSortRef} style={style} className="flex w-80 shrink-0 flex-col gap-2">
-      <h3
-        {...(reorderable ? { ...attributes, ...listeners } : {})}
-        className={`truncate text-xs font-semibold tracking-wide text-gray-500 uppercase ${reorderable ? 'cursor-grab touch-none' : ''}`}
-        title={reorderable ? 'Maintenir pour réordonner' : undefined}
-      >
-        {column.name} <span className="text-gray-400">({tickets.length})</span>
-      </h3>
+      <ColumnHeader
+        name={column.name}
+        ticketCount={tickets.length}
+        editingColumns={editingColumns}
+        onRename={(name) => onRenameColumn?.(column.id, name)}
+        onRequestDelete={() => onRequestDeleteColumn?.(column)}
+        dragHandleProps={reorderable ? { ...attributes, ...listeners } : undefined}
+      />
       <div
         ref={setDropRef}
         className={`flex min-h-16 flex-1 flex-col gap-2 rounded-md border p-3 transition-colors ${
@@ -157,6 +232,18 @@ function ColumnBody({ column, tickets, memberDirectory, ticketHref, onTicketClic
   )
 }
 
+function AddColumnTile({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="h-9 w-80 shrink-0 rounded-md border border-dashed border-gray-300 text-sm text-gray-400 hover:border-gray-400 hover:text-gray-600"
+    >
+      + Colonne
+    </button>
+  )
+}
+
 interface KanbanBoardProps {
   columns: Column[]
   tickets: Ticket[]
@@ -166,15 +253,20 @@ interface KanbanBoardProps {
   onTicketMove: (ticketId: string, columnId: string) => void
   errorMessage?: string | null
   onReorderColumns?: (columnIds: string[]) => void
+  editingColumns?: boolean
+  onRenameColumn?: (columnId: string, name: string) => void
+  onRequestDeleteColumn?: (column: Column) => void
+  onAddColumn?: () => void
 }
 
 /**
  * Presentational drag-and-drop board: it only renders tickets/columns and
  * reports changes (a ticket dropped on a column, a column reordered)
  * upward. Whether those changes are persisted (real projects) or kept
- * local-only (read-only demo) is entirely up to the caller - column
- * reordering only activates when onReorderColumns is provided. Creating,
- * renaming and deleting columns lives in ColumnManagerMenu, not here.
+ * local-only (read-only demo) is entirely up to the caller. Column
+ * reordering only activates when onReorderColumns is provided; renaming,
+ * deleting and adding columns only render while editingColumns is true
+ * (toggled from BoardMenu, outside this component).
  */
 export function KanbanBoard({
   columns,
@@ -185,6 +277,10 @@ export function KanbanBoard({
   onTicketMove,
   errorMessage,
   onReorderColumns,
+  editingColumns = false,
+  onRenameColumn,
+  onRequestDeleteColumn,
+  onAddColumn,
 }: KanbanBoardProps) {
   const [activeTicket, setActiveTicket] = useState<Ticket | null>(null)
   const reorderable = onReorderColumns !== undefined
@@ -258,9 +354,13 @@ export function KanbanBoard({
                 ticketHref={ticketHref}
                 onTicketClick={onTicketClick}
                 reorderable={reorderable}
+                editingColumns={editingColumns}
+                onRenameColumn={onRenameColumn}
+                onRequestDeleteColumn={onRequestDeleteColumn}
               />
             ))}
           </SortableContext>
+          {editingColumns && onAddColumn && <AddColumnTile onClick={onAddColumn} />}
         </div>
         <DragOverlay>
           {activeTicket && (

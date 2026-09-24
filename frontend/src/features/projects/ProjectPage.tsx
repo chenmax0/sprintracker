@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { Card } from '../../lib/Card'
 import { toMemberDirectory } from '../../lib/memberDirectory'
-import { ColumnManagerMenu } from '../board/ColumnManagerMenu'
+import { BoardMenu } from '../board/BoardMenu'
 import { useColumns } from '../board/hooks'
 import { useSprints } from '../sprints/hooks'
 import { SprintModal } from '../sprints/SprintModal'
@@ -34,6 +34,7 @@ export function ProjectPage() {
   const [sprintModal, setSprintModal] = useState<'launch' | 'complete' | null>(null)
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null)
   const [assigneeFilter, setAssigneeFilter] = useState('')
+  const [editingColumns, setEditingColumns] = useState(false)
 
   const activeSprint = sprints?.find((sprint) => sprint.status === 'active') ?? null
   const sprintTickets = activeSprint ? (tickets ?? []).filter((ticket) => ticket.sprintId === activeSprint.id) : []
@@ -152,13 +153,14 @@ export function ProjectPage() {
                 </option>
               ))}
             </select>
-            <ColumnManagerMenu projectId={projectId} />
+            <BoardMenu isEditingColumns={editingColumns} onToggleEditColumns={() => setEditingColumns((v) => !v)} />
           </div>
           <ProjectKanbanBoard
             projectId={projectId}
             tickets={boardTickets}
             memberDirectory={memberDirectory}
             onTicketClick={(ticket) => setSelectedTicketId(ticket.id)}
+            editingColumns={editingColumns}
           />
         </div>
       ) : (
