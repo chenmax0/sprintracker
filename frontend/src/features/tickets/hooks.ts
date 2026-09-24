@@ -8,10 +8,9 @@ import {
   getTicketSprintHistory,
   listComments,
   listTickets,
+  moveTicketToColumn,
   moveTicketToSprint,
   type Ticket,
-  type TicketStatus,
-  updateTicketStatus,
 } from './api'
 
 export function useTickets(projectId: string) {
@@ -43,41 +42,41 @@ export function useAssignTicket(ticketId: string) {
   })
 }
 
-interface UpdateTicketStatusInput {
+interface MoveTicketToColumnInput {
   ticketId: string
-  status: TicketStatus
+  columnId: string
 }
 
 /**
- * Optimistic status update, for the kanban board's drag-and-drop: the card
+ * Optimistic column move, for the kanban board's drag-and-drop: the card
  * must move immediately on drop, not wait for the round-trip. Rolls back to
  * the pre-drag snapshot if the request fails.
  */
-export function useUpdateTicketStatus(projectId: string) {
+export function useMoveTicketToColumn(projectId: string) {
   const queryClient = useQueryClient()
   const queryKey = ['projects', projectId, 'tickets']
 
   return useMutation({
-    mutationFn: ({ ticketId, status }: UpdateTicketStatusInput) => updateTicketStatus(ticketId, status),
-    onMutate: async ({ ticketId, status }) => {
+    mutationFn: ({ ticketId, columnId }: MoveTicketToColumnInput) => moveTicketToColumn(ticketId, columnId),
+    onMutate: async ({ ticketId, columnId }) => {
       await queryClient.cancelQueries({ queryKey })
       const previousTickets = queryClient.getQueryData<Ticket[]>(queryKey)
-      const previousStatus = previousTickets?.find((ticket) => ticket.id === ticketId)?.status
+      const previousColumnId = previousTickets?.find((ticket) => ticket.id === ticketId)?.columnId
 
       queryClient.setQueryData<Ticket[]>(queryKey, (tickets) =>
-        tickets?.map((ticket) => (ticket.id === ticketId ? { ...ticket, status } : ticket)),
+        tickets?.map((ticket) => (ticket.id === ticketId ? { ...ticket, columnId } : ticket)),
       )
 
-      return { ticketId, previousStatus }
+      return { ticketId, previousColumnId }
     },
     onError: (_error, _variables, context) => {
-      if (!context || context.previousStatus === undefined) {
+      if (!context || context.previousColumnId === undefined) {
         return
       }
 
       queryClient.setQueryData<Ticket[]>(queryKey, (tickets) =>
         tickets?.map((ticket) =>
-          ticket.id === context.ticketId ? { ...ticket, status: context.previousStatus! } : ticket,
+          ticket.id === context.ticketId ? { ...ticket, columnId: context.previousColumnId! } : ticket,
         ),
       )
     },

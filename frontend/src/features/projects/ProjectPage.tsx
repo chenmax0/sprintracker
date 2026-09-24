@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { Card } from '../../lib/Card'
 import { toMemberDirectory } from '../../lib/memberDirectory'
+import { useColumns } from '../board/hooks'
 import { useSprints } from '../sprints/hooks'
 import { SprintModal } from '../sprints/SprintModal'
 import { MembersModal } from '../teams/MembersModal'
@@ -20,6 +21,7 @@ export function ProjectPage() {
 
   const { data: project } = useProject(projectId)
   const { data: sprints } = useSprints(projectId)
+  const { data: columns } = useColumns(projectId)
   const { data: tickets } = useTickets(projectId)
   const { data: members } = useTeamMembers(project?.teamId ?? '')
   const memberDirectory = toMemberDirectory(members)
@@ -34,7 +36,9 @@ export function ProjectPage() {
 
   const activeSprint = sprints?.find((sprint) => sprint.status === 'active') ?? null
   const sprintTickets = activeSprint ? (tickets ?? []).filter((ticket) => ticket.sprintId === activeSprint.id) : []
-  const doneCount = sprintTickets.filter((ticket) => ticket.status === 'done').length
+  // "Done" isn't a fixed status: it's whichever column is rightmost on the board.
+  const lastColumnId = columns && columns.length > 0 ? columns[columns.length - 1].id : null
+  const doneCount = sprintTickets.filter((ticket) => ticket.columnId === lastColumnId).length
   const progress = sprintTickets.length > 0 ? Math.round((doneCount / sprintTickets.length) * 100) : 0
   const boardTickets = assigneeFilter
     ? sprintTickets.filter((ticket) => ticket.assigneeId === assigneeFilter)

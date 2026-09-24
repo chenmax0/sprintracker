@@ -1,7 +1,5 @@
 import { apiClient } from '../../lib/apiClient'
 
-export type TicketStatus = 'todo' | 'in_progress' | 'done'
-
 export interface Ticket {
   id: string
   number: number
@@ -9,7 +7,7 @@ export interface Ticket {
   sprintId: string | null
   title: string
   description: string | null
-  status: TicketStatus
+  columnId: string
   reporterId: string
   assigneeId: string | null
   carriedOverCount: number
@@ -51,8 +49,8 @@ export function assignTicket(ticketId: string, assigneeId: string | null): Promi
   return apiClient.post(`/api/tickets/${ticketId}/assign`, { assigneeId })
 }
 
-export function updateTicketStatus(ticketId: string, status: TicketStatus): Promise<Ticket> {
-  return apiClient.patch(`/api/tickets/${ticketId}/status`, { status })
+export function moveTicketToColumn(ticketId: string, columnId: string): Promise<Ticket> {
+  return apiClient.patch(`/api/tickets/${ticketId}/column`, { columnId })
 }
 
 export function moveTicketToSprint(ticketId: string, sprintId: string | null): Promise<Ticket> {

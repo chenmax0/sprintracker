@@ -4,30 +4,11 @@ import { ApiError } from '../../lib/apiClient'
 import { Card } from '../../lib/Card'
 import { MemberLabel } from '../../lib/MemberLabel'
 import { toMemberDirectory } from '../../lib/memberDirectory'
+import { useColumns } from '../board/hooks'
 import { useProject } from '../projects/hooks'
 import { useSprints } from '../sprints/hooks'
 import { useTeamMembers } from '../teams/hooks'
-import type { TicketStatus } from './api'
-import {
-  useAddComment,
-  useAssignTicket,
-  useComments,
-  useTicket,
-  useTicketSprintHistory,
-  useUpdateTicketStatus,
-} from './hooks'
-
-const STATUS_LABELS: Record<TicketStatus, string> = {
-  todo: 'À faire',
-  in_progress: 'En cours',
-  done: 'Terminé',
-}
-
-const STATUS_STYLES: Record<TicketStatus, string> = {
-  todo: 'bg-gray-100 text-gray-700',
-  in_progress: 'bg-amber-100 text-amber-700',
-  done: 'bg-emerald-100 text-emerald-700',
-}
+import { useAddComment, useAssignTicket, useComments, useMoveTicketToColumn, useTicket, useTicketSprintHistory } from './hooks'
 
 /**
  * Everything a ticket's detail view needs (metadata, history, reassignment,
@@ -40,7 +21,8 @@ export function TicketDetails({ ticketId, showProjectLink = false }: { ticketId:
   const { data: members } = useTeamMembers(project?.teamId ?? '')
   const memberDirectory = toMemberDirectory(members)
   const assign = useAssignTicket(ticketId)
-  const updateStatus = useUpdateTicketStatus(ticket?.projectId ?? '')
+  const moveToColumn = useMoveTicketToColumn(ticket?.projectId ?? '')
+  const { data: columns } = useColumns(ticket?.projectId ?? '')
   const { data: comments } = useComments(ticketId)
   const addComment = useAddComment(ticketId)
   const { data: sprints } = useSprints(ticket?.projectId ?? '')
@@ -78,16 +60,16 @@ export function TicketDetails({ ticketId, showProjectLink = false }: { ticketId:
       <Card>
         <div className="flex flex-wrap gap-8 text-sm">
           <div>
-            <span className="block text-xs text-gray-500">Statut</span>
-            {ticket && (
+            <span className="block text-xs text-gray-500">Colonne</span>
+            {ticket && columns && (
               <select
-                value={ticket.status}
-                onChange={(e) => updateStatus.mutate({ ticketId, status: e.target.value as TicketStatus })}
-                className={`mt-1 rounded px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[ticket.status]}`}
+                value={ticket.columnId}
+                onChange={(e) => moveToColumn.mutate({ ticketId, columnId: e.target.value })}
+                className="mt-1 rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700"
               >
-                {Object.entries(STATUS_LABELS).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
+                {columns.map((column) => (
+                  <option key={column.id} value={column.id}>
+                    {column.name}
                   </option>
                 ))}
               </select>

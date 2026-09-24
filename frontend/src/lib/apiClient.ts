@@ -35,7 +35,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return body as T
 }
 
-function withBody<T>(method: 'POST' | 'PATCH', path: string, data?: unknown) {
+function withBody<T>(method: 'POST' | 'PATCH' | 'PUT', path: string, data?: unknown) {
   return request<T>(path, { method, body: data !== undefined ? JSON.stringify(data) : undefined })
 }
 
@@ -43,5 +43,6 @@ export const apiClient = {
   get: <T>(path: string) => request<T>(path),
   post: <T>(path: string, data?: unknown) => withBody<T>('POST', path, data),
   patch: <T>(path: string, data?: unknown) => withBody<T>('PATCH', path, data),
+  put: <T>(path: string, data?: unknown) => withBody<T>('PUT', path, data),
   delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
 }

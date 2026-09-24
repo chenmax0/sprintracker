@@ -45,7 +45,7 @@ export function DemoPage() {
           <>
             <h1 className="mx-auto mb-8 max-w-4xl text-xl font-semibold text-gray-900">{data.project.name}</h1>
 
-            <DemoKanbanBoard tickets={data.tickets} sprints={data.sprints} memberDirectory={memberDirectory} />
+            <DemoKanbanBoard tickets={data.tickets} columns={data.columns} sprints={data.sprints} memberDirectory={memberDirectory} />
           </>
         )}
       </main>

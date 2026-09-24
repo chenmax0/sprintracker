@@ -3,28 +3,23 @@ import type { MemberDirectory } from '../../lib/memberDirectory'
 import { Modal } from '../../lib/Modal'
 import type { Ticket } from '../tickets/api'
 
-const STATUS_LABELS: Record<Ticket['status'], string> = {
-  todo: 'À faire',
-  in_progress: 'En cours',
-  done: 'Terminé',
-}
-
 interface DemoTicketModalProps {
   ticket: Ticket
+  columnName: string
   sprintLabel: string
   memberDirectory?: MemberDirectory
   onClose: () => void
 }
 
-export function DemoTicketModal({ ticket, sprintLabel, memberDirectory, onClose }: DemoTicketModalProps) {
+export function DemoTicketModal({ ticket, columnName, sprintLabel, memberDirectory, onClose }: DemoTicketModalProps) {
   return (
     <Modal title={`#${ticket.number} ${ticket.title}`} onClose={onClose}>
       {ticket.description && <p className="mb-4 text-sm text-gray-600">{ticket.description}</p>}
 
       <div className="flex flex-wrap gap-6 text-sm">
         <div>
-          <span className="block text-xs text-gray-500">Statut</span>
-          <span className="font-medium text-gray-900">{STATUS_LABELS[ticket.status]}</span>
+          <span className="block text-xs text-gray-500">Colonne</span>
+          <span className="font-medium text-gray-900">{columnName}</span>
         </div>
         <div>
           <span className="block text-xs text-gray-500">Sprint</span>
