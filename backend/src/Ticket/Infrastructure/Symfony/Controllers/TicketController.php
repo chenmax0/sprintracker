@@ -21,6 +21,8 @@ use App\Ticket\Application\ListTicketSprintHistory\ListTicketSprintHistoryPayloa
 use App\Ticket\Application\ListTicketSprintHistory\TicketSprintHistoryEntry;
 use App\Ticket\Application\ListTickets\ListTicketsHandler;
 use App\Ticket\Application\ListTickets\ListTicketsPayload;
+use App\Ticket\Application\MoveTicketToSprint\MoveTicketToSprintHandler;
+use App\Ticket\Application\MoveTicketToSprint\MoveTicketToSprintPayload;
 use App\Ticket\Application\Port\TicketSprintHistoryRepositoryInterface;
 use App\Ticket\Application\UpdateTicketStatus\UpdateTicketStatusHandler;
 use App\Ticket\Application\UpdateTicketStatus\UpdateTicketStatusPayload;
@@ -126,6 +128,29 @@ final class TicketController
         }
 
         return new JsonResponse($this->serializeTicket($ticket));
+    }
+
+    public function moveToSprint(MoveTicketToSprintHandler $handler, TicketSprintHistoryRepositoryInterface $history, Request $request, #[CurrentUser] SecurityUser $user, string $ticketId): JsonResponse
+    {
+        $data = new JsonBody($request);
+
+        $payload = new MoveTicketToSprintPayload($ticketId, $user->getId(), $data->nullableString('sprintId'));
+
+        try {
+            $ticket = $handler->handle($payload);
+        } catch (LazyAssertionException $e) {
+            return $this->validationErrorResponse($e);
+        } catch (TicketNotFoundException $e) {
+            return new JsonResponse(['errors' => [$e->getMessage()]], 404);
+        } catch (NotAProjectMemberException $e) {
+            return new JsonResponse(['errors' => [$e->getMessage()]], 403);
+        } catch (SprintNotInProjectException $e) {
+            return new JsonResponse(['errors' => [$e->getMessage()]], 422);
+        }
+
+        $count = $history->countByTicketIds([(string) $ticket->getId()])[(string) $ticket->getId()] ?? 0;
+
+        return new JsonResponse($this->serializeTicket($ticket, $count));
     }
 
     public function updateStatus(UpdateTicketStatusHandler $handler, Request $request, #[CurrentUser] SecurityUser $user, string $ticketId): JsonResponse

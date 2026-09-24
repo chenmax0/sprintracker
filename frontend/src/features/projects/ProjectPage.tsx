@@ -6,6 +6,7 @@ import { useSprints } from '../sprints/hooks'
 import { SprintModal } from '../sprints/SprintModal'
 import { MembersModal } from '../teams/MembersModal'
 import { useTeamMembers } from '../teams/hooks'
+import { BacklogModal } from '../tickets/BacklogModal'
 import { CreateTicketModal } from '../tickets/CreateTicketModal'
 import { useTickets } from '../tickets/hooks'
 import { ProjectKanbanBoard } from '../tickets/ProjectKanbanBoard'
@@ -25,6 +26,7 @@ export function ProjectPage() {
 
   const [showMembers, setShowMembers] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
+  const [showBacklog, setShowBacklog] = useState(false)
   const [showCreateTicket, setShowCreateTicket] = useState(false)
   const [sprintModal, setSprintModal] = useState<'launch' | 'complete' | null>(null)
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null)
@@ -37,6 +39,7 @@ export function ProjectPage() {
   const boardTickets = assigneeFilter
     ? sprintTickets.filter((ticket) => ticket.assigneeId === assigneeFilter)
     : sprintTickets
+  const backlogTickets = (tickets ?? []).filter((ticket) => ticket.sprintId === null)
 
   return (
     <div className="flex flex-col gap-8">
@@ -54,6 +57,13 @@ export function ProjectPage() {
             </div>
           </div>
           <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setShowBacklog(true)}
+              className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+            >
+              Backlog ({backlogTickets.length})
+            </button>
             <button
               type="button"
               onClick={() => setShowMembers(true)}
@@ -167,6 +177,14 @@ export function ProjectPage() {
       )}
       {selectedTicketId && <TicketPanel ticketId={selectedTicketId} onClose={() => setSelectedTicketId(null)} />}
       {showSettings && project && <ProjectSettingsModal project={project} onClose={() => setShowSettings(false)} />}
+      {showBacklog && (
+        <BacklogModal
+          projectId={projectId}
+          tickets={backlogTickets}
+          activeSprintId={activeSprint?.id ?? null}
+          onClose={() => setShowBacklog(false)}
+        />
+      )}
     </div>
   )
 }

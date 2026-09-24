@@ -18,7 +18,7 @@ interface DemoTicketModalProps {
 
 export function DemoTicketModal({ ticket, sprintLabel, memberDirectory, onClose }: DemoTicketModalProps) {
   return (
-    <Modal title={ticket.title} onClose={onClose}>
+    <Modal title={`#${ticket.number} ${ticket.title}`} onClose={onClose}>
       {ticket.description && <p className="mb-4 text-sm text-gray-600">{ticket.description}</p>}
 
       <div className="flex flex-wrap gap-6 text-sm">

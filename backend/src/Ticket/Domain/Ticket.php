@@ -51,6 +51,11 @@ final class Ticket
         $this->assigneeId = $assigneeId;
     }
 
+    public function moveToSprint(?SprintId $sprintId): void
+    {
+        $this->sprintId = $sprintId;
+    }
+
     public function changeStatus(TicketStatus $status): void
     {
         $this->status = $status;

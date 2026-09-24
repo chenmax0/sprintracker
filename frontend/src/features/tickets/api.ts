@@ -55,6 +55,10 @@ export function updateTicketStatus(ticketId: string, status: TicketStatus): Prom
   return apiClient.patch(`/api/tickets/${ticketId}/status`, { status })
 }
 
+export function moveTicketToSprint(ticketId: string, sprintId: string | null): Promise<Ticket> {
+  return apiClient.patch(`/api/tickets/${ticketId}/sprint`, { sprintId })
+}
+
 export function listComments(ticketId: string): Promise<Comment[]> {
   return apiClient.get(`/api/tickets/${ticketId}/comments`)
 }

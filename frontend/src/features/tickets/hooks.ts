@@ -8,6 +8,7 @@ import {
   getTicketSprintHistory,
   listComments,
   listTickets,
+  moveTicketToSprint,
   type Ticket,
   type TicketStatus,
   updateTicketStatus,
@@ -81,6 +82,16 @@ export function useUpdateTicketStatus(projectId: string) {
       )
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey }),
+  })
+}
+
+export function useMoveTicketToSprint(projectId: string) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ ticketId, sprintId }: { ticketId: string; sprintId: string | null }) =>
+      moveTicketToSprint(ticketId, sprintId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['projects', projectId, 'tickets'] }),
   })
 }
 
