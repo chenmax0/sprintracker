@@ -1,0 +1,24 @@
+board_column_create:
+    path: /api/projects/{projectId}/columns
+    controller: App\Board\Infrastructure\Symfony\Controllers\BoardColumnController::create
+    methods: [POST]
+
+board_column_list:
+    path: /api/projects/{projectId}/columns
+    controller: App\Board\Infrastructure\Symfony\Controllers\BoardColumnController::list
+    methods: [GET]
+
+board_column_reorder:
+    path: /api/projects/{projectId}/columns/order
+    controller: App\Board\Infrastructure\Symfony\Controllers\BoardColumnController::reorder
+    methods: [PUT]
+
+board_column_rename:
+    path: /api/columns/{columnId}
+    controller: App\Board\Infrastructure\Symfony\Controllers\BoardColumnController::rename
+    methods: [PATCH]
+
+board_column_delete:
+    path: /api/columns/{columnId}
+    controller: App\Board\Infrastructure\Symfony\Controllers\BoardColumnController::delete
+    methods: [DELETE]

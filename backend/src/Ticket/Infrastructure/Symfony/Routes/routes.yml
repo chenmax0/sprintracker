@@ -1,0 +1,44 @@
+ticket_create:
+    path: /api/projects/{projectId}/tickets
+    controller: App\Ticket\Infrastructure\Symfony\Controllers\TicketController::create
+    methods: [POST]
+
+ticket_list:
+    path: /api/projects/{projectId}/tickets
+    controller: App\Ticket\Infrastructure\Symfony\Controllers\TicketController::list
+    methods: [GET]
+
+ticket_show:
+    path: /api/tickets/{ticketId}
+    controller: App\Ticket\Infrastructure\Symfony\Controllers\TicketController::show
+    methods: [GET]
+
+ticket_assign:
+    path: /api/tickets/{ticketId}/assign
+    controller: App\Ticket\Infrastructure\Symfony\Controllers\TicketController::assign
+    methods: [POST]
+
+ticket_move_to_column:
+    path: /api/tickets/{ticketId}/column
+    controller: App\Ticket\Infrastructure\Symfony\Controllers\TicketController::moveToColumn
+    methods: [PATCH]
+
+ticket_add_comment:
+    path: /api/tickets/{ticketId}/comments
+    controller: App\Ticket\Infrastructure\Symfony\Controllers\TicketController::addComment
+    methods: [POST]
+
+ticket_list_comments:
+    path: /api/tickets/{ticketId}/comments
+    controller: App\Ticket\Infrastructure\Symfony\Controllers\TicketController::listComments
+    methods: [GET]
+
+ticket_move_to_sprint:
+    path: /api/tickets/{ticketId}/sprint
+    controller: App\Ticket\Infrastructure\Symfony\Controllers\TicketController::moveToSprint
+    methods: [PATCH]
+
+ticket_sprint_history:
+    path: /api/tickets/{ticketId}/sprint-history
+    controller: App\Ticket\Infrastructure\Symfony\Controllers\TicketController::sprintHistory
+    methods: [GET]
