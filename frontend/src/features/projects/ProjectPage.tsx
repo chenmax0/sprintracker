@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router'
 import { Card } from '../../lib/Card'
 import { toMemberDirectory } from '../../lib/memberDirectory'
 import { BoardMenu } from '../board/BoardMenu'
+import { CreateColumnModal } from '../board/CreateColumnModal'
 import { useColumns } from '../board/hooks'
 import { useSprints } from '../sprints/hooks'
 import { SprintModal } from '../sprints/SprintModal'
@@ -35,6 +36,7 @@ export function ProjectPage() {
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null)
   const [assigneeFilter, setAssigneeFilter] = useState('')
   const [editingColumns, setEditingColumns] = useState(false)
+  const [showCreateColumn, setShowCreateColumn] = useState(false)
 
   const activeSprint = sprints?.find((sprint) => sprint.status === 'active') ?? null
   const sprintTickets = activeSprint ? (tickets ?? []).filter((ticket) => ticket.sprintId === activeSprint.id) : []
@@ -153,7 +155,18 @@ export function ProjectPage() {
                 </option>
               ))}
             </select>
-            <BoardMenu isEditingColumns={editingColumns} onToggleEditColumns={() => setEditingColumns((v) => !v)} />
+            <div className="flex items-center gap-2">
+              {editingColumns && (
+                <button
+                  type="button"
+                  onClick={() => setShowCreateColumn(true)}
+                  className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+                >
+                  + Créer une colonne
+                </button>
+              )}
+              <BoardMenu isEditingColumns={editingColumns} onToggleEditColumns={() => setEditingColumns((v) => !v)} />
+            </div>
           </div>
           <ProjectKanbanBoard
             projectId={projectId}
@@ -193,6 +206,7 @@ export function ProjectPage() {
           onClose={() => setShowBacklog(false)}
         />
       )}
+      {showCreateColumn && <CreateColumnModal projectId={projectId} onClose={() => setShowCreateColumn(false)} />}
     </div>
   )
 }

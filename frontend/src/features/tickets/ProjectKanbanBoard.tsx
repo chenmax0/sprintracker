@@ -3,7 +3,6 @@ import { ApiError } from '../../lib/apiClient'
 import { ConfirmModal } from '../../lib/ConfirmModal'
 import type { MemberDirectory } from '../../lib/memberDirectory'
 import type { Column } from '../board/api'
-import { CreateColumnModal } from '../board/CreateColumnModal'
 import { useColumns, useDeleteColumn, useRenameColumn, useReorderColumns } from '../board/hooks'
 import type { Ticket } from './api'
 import { useMoveTicketToColumn } from './hooks'
@@ -12,8 +11,9 @@ import { KanbanBoard } from './KanbanBoard'
 /**
  * Wires the presentational KanbanBoard to a real project: ticket moves and
  * column edits are persisted (optimistically for ticket moves, with
- * rollback on error). Column creation/rename/reorder/delete only render
- * while editingColumns is true (toggled by BoardMenu, owned by the caller).
+ * rollback on error). Column rename/reorder/delete only render while
+ * editingColumns is true (toggled by BoardMenu, owned by the caller);
+ * creating a column has its own button there too, not here.
  */
 interface ProjectKanbanBoardProps {
   projectId: string
@@ -30,7 +30,6 @@ export function ProjectKanbanBoard({ projectId, tickets, memberDirectory, onTick
   const reorderColumns = useReorderColumns(projectId)
   const deleteColumn = useDeleteColumn(projectId)
 
-  const [isCreatingColumn, setIsCreatingColumn] = useState(false)
   const [columnPendingDeletion, setColumnPendingDeletion] = useState<Column | null>(null)
 
   const mutationError = [moveTicket, renameColumn, reorderColumns].find((m) => m.isError)?.error
@@ -58,10 +57,8 @@ export function ProjectKanbanBoard({ projectId, tickets, memberDirectory, onTick
         editingColumns={editingColumns}
         onRenameColumn={(columnId, name) => renameColumn.mutate({ columnId, name })}
         onRequestDeleteColumn={setColumnPendingDeletion}
-        onAddColumn={() => setIsCreatingColumn(true)}
         errorMessage={mutationError instanceof ApiError ? mutationError.message : mutationError ? 'Une erreur est survenue.' : null}
       />
-      {isCreatingColumn && <CreateColumnModal projectId={projectId} onClose={() => setIsCreatingColumn(false)} />}
       {columnPendingDeletion && (
         <ConfirmModal
           title="Supprimer la colonne"

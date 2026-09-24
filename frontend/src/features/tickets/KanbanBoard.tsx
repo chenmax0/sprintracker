@@ -232,18 +232,6 @@ function ColumnBody({
   )
 }
 
-function AddColumnTile({ onClick }: { onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="h-9 w-80 shrink-0 rounded-md border border-dashed border-gray-300 text-sm text-gray-400 hover:border-gray-400 hover:text-gray-600"
-    >
-      + Colonne
-    </button>
-  )
-}
-
 interface KanbanBoardProps {
   columns: Column[]
   tickets: Ticket[]
@@ -256,7 +244,6 @@ interface KanbanBoardProps {
   editingColumns?: boolean
   onRenameColumn?: (columnId: string, name: string) => void
   onRequestDeleteColumn?: (column: Column) => void
-  onAddColumn?: () => void
 }
 
 /**
@@ -264,9 +251,10 @@ interface KanbanBoardProps {
  * reports changes (a ticket dropped on a column, a column reordered)
  * upward. Whether those changes are persisted (real projects) or kept
  * local-only (read-only demo) is entirely up to the caller. Column
- * reordering only activates when onReorderColumns is provided; renaming,
- * deleting and adding columns only render while editingColumns is true
- * (toggled from BoardMenu, outside this component).
+ * reordering only activates when onReorderColumns is provided; renaming
+ * and deleting only render while editingColumns is true (toggled from
+ * BoardMenu, outside this component - creating a column has its own
+ * button there too, not rendered here).
  */
 export function KanbanBoard({
   columns,
@@ -280,7 +268,6 @@ export function KanbanBoard({
   editingColumns = false,
   onRenameColumn,
   onRequestDeleteColumn,
-  onAddColumn,
 }: KanbanBoardProps) {
   const [activeTicket, setActiveTicket] = useState<Ticket | null>(null)
   const reorderable = onReorderColumns !== undefined
@@ -360,7 +347,6 @@ export function KanbanBoard({
               />
             ))}
           </SortableContext>
-          {editingColumns && onAddColumn && <AddColumnTile onClick={onAddColumn} />}
         </div>
         <DragOverlay>
           {activeTicket && (
