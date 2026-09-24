@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { Card } from '../../lib/Card'
 import { toMemberDirectory } from '../../lib/memberDirectory'
+import { ColumnManagerMenu } from '../board/ColumnManagerMenu'
 import { useColumns } from '../board/hooks'
 import { useSprints } from '../sprints/hooks'
 import { SprintModal } from '../sprints/SprintModal'
@@ -138,7 +139,7 @@ export function ProjectPage() {
 
       {activeSprint ? (
         <div className="flex flex-col gap-3">
-          <div className="flex justify-center">
+          <div className="mx-auto flex w-full max-w-6xl items-center justify-between">
             <select
               value={assigneeFilter}
               onChange={(e) => setAssigneeFilter(e.target.value)}
@@ -151,6 +152,7 @@ export function ProjectPage() {
                 </option>
               ))}
             </select>
+            <ColumnManagerMenu projectId={projectId} />
           </div>
           <ProjectKanbanBoard
             projectId={projectId}
