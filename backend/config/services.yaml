@@ -47,6 +47,10 @@ services:
         resource: '../src/Demo/Infrastructure/Symfony/Controllers/'
         tags: ['controller.service_arguments']
 
+    App\Board\Infrastructure\Symfony\Controllers\:
+        resource: '../src/Board/Infrastructure/Symfony/Controllers/'
+        tags: ['controller.service_arguments']
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
     App\Auth\Domain\UserRepositoryInterface:
@@ -79,6 +83,9 @@ services:
     App\Project\Application\Port\MyProjectsQueryInterface:
         alias: App\Project\Infrastructure\Persistence\Sql\SqlMyProjectsQuery
 
+    App\Project\Application\Port\DefaultBoardColumnsSeederInterface:
+        alias: App\Project\Infrastructure\Persistence\Sql\SqlDefaultBoardColumnsSeeder
+
     App\Sprint\Domain\SprintRepositoryInterface:
         alias: App\Sprint\Infrastructure\Persistence\Sql\SqlSprintRepository
 
@@ -102,6 +109,18 @@ services:
 
     App\Ticket\Application\Port\TicketSprintHistoryRepositoryInterface:
         alias: App\Ticket\Infrastructure\Persistence\Sql\SqlTicketSprintHistoryRepository
+
+    App\Ticket\Application\Port\ColumnLookupInterface:
+        alias: App\Ticket\Infrastructure\Persistence\Sql\SqlColumnLookup
+
+    App\Board\Domain\BoardColumnRepositoryInterface:
+        alias: App\Board\Infrastructure\Persistence\Sql\SqlBoardColumnRepository
+
+    App\Board\Application\Port\ProjectTeamMembershipCheckerInterface:
+        alias: App\Board\Infrastructure\Persistence\Sql\SqlProjectTeamMembershipChecker
+
+    App\Board\Application\Port\ColumnTicketCheckerInterface:
+        alias: App\Board\Infrastructure\Persistence\Sql\SqlColumnTicketChecker
 
     App\Demo\Application\Port\DemoRepositoryInterface:
         alias: App\Demo\Infrastructure\Persistence\Sql\SqlDemoRepository

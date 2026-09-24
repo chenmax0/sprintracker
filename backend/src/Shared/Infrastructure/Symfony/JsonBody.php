@@ -34,4 +34,16 @@ final class JsonBody
     {
         return isset($this->data[$key]) && is_string($this->data[$key]) ? $this->data[$key] : null;
     }
+
+    /**
+     * @return list<string>
+     */
+    public function stringArray(string $key): array
+    {
+        if (!isset($this->data[$key]) || !is_array($this->data[$key])) {
+            return [];
+        }
+
+        return array_values(array_filter($this->data[$key], 'is_string'));
+    }
 }

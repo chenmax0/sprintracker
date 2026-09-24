@@ -37,6 +37,7 @@ final class SqlDemoRepository implements DemoRepositoryInterface
 
         $sprints = [];
         $tickets = [];
+        $columns = [];
 
         if (false !== $project) {
             $sprints = $this->connection->fetchAllAssociative(
@@ -45,7 +46,12 @@ final class SqlDemoRepository implements DemoRepositoryInterface
             );
 
             $tickets = $this->connection->fetchAllAssociative(
-                'SELECT id, project_id, number, sprint_id, title, description, status, reporter_id, assignee_id FROM ticket WHERE project_id = :project_id ORDER BY number ASC',
+                'SELECT id, project_id, number, sprint_id, title, description, column_id, reporter_id, assignee_id FROM ticket WHERE project_id = :project_id ORDER BY number ASC',
+                ['project_id' => $project['id']],
+            );
+
+            $columns = $this->connection->fetchAllAssociative(
+                'SELECT id, project_id, name, position FROM board_column WHERE project_id = :project_id ORDER BY position ASC',
                 ['project_id' => $project['id']],
             );
         }
@@ -56,6 +62,7 @@ final class SqlDemoRepository implements DemoRepositoryInterface
             'members' => $members,
             'sprints' => $sprints,
             'tickets' => $tickets,
+            'columns' => $columns,
         ];
     }
 }

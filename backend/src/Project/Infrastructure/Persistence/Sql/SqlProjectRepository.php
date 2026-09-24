@@ -75,6 +75,7 @@ final class SqlProjectRepository implements ProjectRepositoryInterface
             ['project_id' => $projectId],
         );
         $this->connection->executeStatement('DELETE FROM ticket WHERE project_id = :project_id', ['project_id' => $projectId]);
+        $this->connection->executeStatement('DELETE FROM board_column WHERE project_id = :project_id', ['project_id' => $projectId]);
         $this->connection->executeStatement('DELETE FROM sprint WHERE project_id = :project_id', ['project_id' => $projectId]);
         $this->connection->executeStatement('DELETE FROM project WHERE id = :id', ['id' => $projectId]);
     }

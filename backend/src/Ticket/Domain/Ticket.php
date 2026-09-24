@@ -13,7 +13,7 @@ final class Ticket
         private ?SprintId $sprintId,
         private string $title,
         private ?string $description,
-        private TicketStatus $status,
+        private ColumnId $columnId,
         private MemberId $reporterId,
         private ?MemberId $assigneeId,
     ) {
@@ -26,10 +26,11 @@ final class Ticket
         ?SprintId $sprintId,
         string $title,
         ?string $description,
+        ColumnId $columnId,
         MemberId $reporterId,
         ?MemberId $assigneeId,
     ): self {
-        return new self($id, $projectId, $number, $sprintId, $title, $description, TicketStatus::Todo, $reporterId, $assigneeId);
+        return new self($id, $projectId, $number, $sprintId, $title, $description, $columnId, $reporterId, $assigneeId);
     }
 
     public static function fromPersistence(
@@ -39,11 +40,11 @@ final class Ticket
         ?SprintId $sprintId,
         string $title,
         ?string $description,
-        TicketStatus $status,
+        ColumnId $columnId,
         MemberId $reporterId,
         ?MemberId $assigneeId,
     ): self {
-        return new self($id, $projectId, $number, $sprintId, $title, $description, $status, $reporterId, $assigneeId);
+        return new self($id, $projectId, $number, $sprintId, $title, $description, $columnId, $reporterId, $assigneeId);
     }
 
     public function assignTo(?MemberId $assigneeId): void
@@ -56,9 +57,9 @@ final class Ticket
         $this->sprintId = $sprintId;
     }
 
-    public function changeStatus(TicketStatus $status): void
+    public function moveToColumn(ColumnId $columnId): void
     {
-        $this->status = $status;
+        $this->columnId = $columnId;
     }
 
     public function getId(): TicketId
@@ -91,9 +92,9 @@ final class Ticket
         return $this->description;
     }
 
-    public function getStatus(): TicketStatus
+    public function getColumnId(): ColumnId
     {
-        return $this->status;
+        return $this->columnId;
     }
 
     public function getReporterId(): MemberId

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Ticket\Infrastructure\Persistence\Sql;
 
+use App\Ticket\Domain\ColumnId;
 use App\Ticket\Domain\MemberId;
 use App\Ticket\Domain\ProjectId;
 use App\Ticket\Domain\SprintId;
 use App\Ticket\Domain\Ticket;
 use App\Ticket\Domain\TicketId;
 use App\Ticket\Domain\TicketRepositoryInterface;
-use App\Ticket\Domain\TicketStatus;
 use Doctrine\DBAL\Connection;
 
 final class SqlTicketRepository implements TicketRepositoryInterface
@@ -22,7 +22,7 @@ final class SqlTicketRepository implements TicketRepositoryInterface
     public function findById(TicketId $id): ?Ticket
     {
         $row = $this->connection->fetchAssociative(
-            'SELECT id, project_id, number, sprint_id, title, description, status, reporter_id, assignee_id FROM ticket WHERE id = :id',
+            'SELECT id, project_id, number, sprint_id, title, description, column_id, reporter_id, assignee_id FROM ticket WHERE id = :id',
             ['id' => (string) $id],
         );
 
@@ -37,13 +37,13 @@ final class SqlTicketRepository implements TicketRepositoryInterface
     {
         $this->connection->executeStatement(
             <<<'SQL'
-                INSERT INTO ticket (id, project_id, number, sprint_id, title, description, status, reporter_id, assignee_id)
-                VALUES (:id, :project_id, :number, :sprint_id, :title, :description, :status, :reporter_id, :assignee_id)
+                INSERT INTO ticket (id, project_id, number, sprint_id, title, description, column_id, reporter_id, assignee_id)
+                VALUES (:id, :project_id, :number, :sprint_id, :title, :description, :column_id, :reporter_id, :assignee_id)
                 ON CONFLICT (id) DO UPDATE SET
                     sprint_id = EXCLUDED.sprint_id,
                     title = EXCLUDED.title,
                     description = EXCLUDED.description,
-                    status = EXCLUDED.status,
+                    column_id = EXCLUDED.column_id,
                     assignee_id = EXCLUDED.assignee_id
                 SQL,
             [
@@ -53,7 +53,7 @@ final class SqlTicketRepository implements TicketRepositoryInterface
                 'sprint_id' => null !== $ticket->getSprintId() ? (string) $ticket->getSprintId() : null,
                 'title' => $ticket->getTitle(),
                 'description' => $ticket->getDescription(),
-                'status' => $ticket->getStatus()->value,
+                'column_id' => (string) $ticket->getColumnId(),
                 'reporter_id' => (string) $ticket->getReporterId(),
                 'assignee_id' => null !== $ticket->getAssigneeId() ? (string) $ticket->getAssigneeId() : null,
             ],
@@ -63,7 +63,7 @@ final class SqlTicketRepository implements TicketRepositoryInterface
     public function findByProjectId(ProjectId $projectId): array
     {
         $rows = $this->connection->fetchAllAssociative(
-            'SELECT id, project_id, number, sprint_id, title, description, status, reporter_id, assignee_id FROM ticket WHERE project_id = :project_id',
+            'SELECT id, project_id, number, sprint_id, title, description, column_id, reporter_id, assignee_id FROM ticket WHERE project_id = :project_id',
             ['project_id' => (string) $projectId],
         );
 
@@ -89,7 +89,7 @@ final class SqlTicketRepository implements TicketRepositoryInterface
             null !== $row['sprint_id'] ? new SprintId($row['sprint_id']) : null,
             $row['title'],
             $row['description'],
-            TicketStatus::from($row['status']),
+            new ColumnId($row['column_id']),
             new MemberId($row['reporter_id']),
             null !== $row['assignee_id'] ? new MemberId($row['assignee_id']) : null,
         );

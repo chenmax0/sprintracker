@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Ticket\Application\CreateTicket;
 
+use App\Ticket\Application\Port\ColumnLookupInterface;
 use App\Ticket\Application\Port\ProjectTeamMembershipCheckerInterface;
 use App\Ticket\Application\Port\SprintLookupInterface;
 use App\Ticket\Application\Port\TicketIdGeneratorInterface;
+use App\Ticket\Domain\ColumnId;
 use App\Ticket\Domain\Exception\AssigneeNotAProjectMemberException;
 use App\Ticket\Domain\Exception\NotAProjectMemberException;
 use App\Ticket\Domain\Exception\SprintNotInProjectException;
@@ -24,6 +26,7 @@ final class CreateTicketHandler
         private TicketIdGeneratorInterface $ids,
         private ProjectTeamMembershipCheckerInterface $projectTeamMembership,
         private SprintLookupInterface $sprintLookup,
+        private ColumnLookupInterface $columnLookup,
     ) {
     }
 
@@ -60,6 +63,7 @@ final class CreateTicketHandler
             $sprintId,
             $payload->title,
             $payload->description,
+            new ColumnId($this->columnLookup->firstColumnId($payload->projectId)),
             new MemberId($payload->requesterMemberId),
             $assigneeId,
         );

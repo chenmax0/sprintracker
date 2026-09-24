@@ -1,17 +1,2 @@
-auth:
-    resource: ../src/Auth/Infrastructure/Symfony/Routes/auth.yaml
-
-team:
-    resource: ../src/Team/Infrastructure/Symfony/Routes/team.yaml
-
-project:
-    resource: ../src/Project/Infrastructure/Symfony/Routes/project.yaml
-
-sprint:
-    resource: ../src/Sprint/Infrastructure/Symfony/Routes/sprint.yaml
-
-ticket:
-    resource: ../src/Ticket/Infrastructure/Symfony/Routes/ticket.yaml
-
-demo:
-    resource: ../src/Demo/Infrastructure/Symfony/Routes/demo.yaml
+bounded_contexts:
+    resource: '../src/*/Infrastructure/Symfony/Routes/routes.yml'

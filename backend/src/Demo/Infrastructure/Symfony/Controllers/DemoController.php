@@ -52,12 +52,21 @@ final class DemoController
                     'sprintId' => $ticket['sprint_id'],
                     'title' => $ticket['title'],
                     'description' => $ticket['description'],
-                    'status' => $ticket['status'],
+                    'columnId' => $ticket['column_id'],
                     'reporterId' => $ticket['reporter_id'],
                     'assigneeId' => $ticket['assignee_id'],
                     'carriedOverCount' => 0,
                 ],
                 $snapshot['tickets'],
+            ),
+            'columns' => array_map(
+                static fn (array $column) => [
+                    'id' => $column['id'],
+                    'projectId' => $column['project_id'],
+                    'name' => $column['name'],
+                    'position' => (int) $column['position'],
+                ],
+                $snapshot['columns'],
             ),
         ]);
     }

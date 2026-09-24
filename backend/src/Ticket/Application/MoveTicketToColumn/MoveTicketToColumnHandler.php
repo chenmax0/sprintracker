@@ -2,26 +2,29 @@
 
 declare(strict_types=1);
 
-namespace App\Ticket\Application\UpdateTicketStatus;
+namespace App\Ticket\Application\MoveTicketToColumn;
 
+use App\Ticket\Application\Port\ColumnLookupInterface;
 use App\Ticket\Application\Port\ProjectTeamMembershipCheckerInterface;
+use App\Ticket\Domain\ColumnId;
+use App\Ticket\Domain\Exception\ColumnNotInProjectException;
 use App\Ticket\Domain\Exception\NotAProjectMemberException;
 use App\Ticket\Domain\Exception\TicketNotFoundException;
 use App\Ticket\Domain\Ticket;
 use App\Ticket\Domain\TicketId;
 use App\Ticket\Domain\TicketRepositoryInterface;
-use App\Ticket\Domain\TicketStatus;
 
-final class UpdateTicketStatusHandler
+final class MoveTicketToColumnHandler
 {
     public function __construct(
-        private UpdateTicketStatusValidator $validator,
+        private MoveTicketToColumnValidator $validator,
         private TicketRepositoryInterface $tickets,
         private ProjectTeamMembershipCheckerInterface $projectTeamMembership,
+        private ColumnLookupInterface $columnLookup,
     ) {
     }
 
-    public function handle(UpdateTicketStatusPayload $payload): Ticket
+    public function handle(MoveTicketToColumnPayload $payload): Ticket
     {
         $this->validator->validate($payload);
 
@@ -31,11 +34,17 @@ final class UpdateTicketStatusHandler
             throw new TicketNotFoundException($payload->ticketId);
         }
 
-        if (!$this->projectTeamMembership->isMember((string) $ticket->getProjectId(), $payload->requesterMemberId)) {
+        $projectId = (string) $ticket->getProjectId();
+
+        if (!$this->projectTeamMembership->isMember($projectId, $payload->requesterMemberId)) {
             throw new NotAProjectMemberException();
         }
 
-        $ticket->changeStatus(TicketStatus::from($payload->status));
+        if (!$this->columnLookup->belongsToProject($payload->columnId, $projectId)) {
+            throw new ColumnNotInProjectException();
+        }
+
+        $ticket->moveToColumn(new ColumnId($payload->columnId));
         $this->tickets->save($ticket);
 
         return $ticket;

@@ -36,7 +36,7 @@ class CreateTicketActionTest extends WebTestCase
         self::assertSame('Fix bug', $data['title']);
         self::assertNull($data['sprintId']);
         self::assertNull($data['assigneeId']);
-        self::assertSame('todo', $data['status']);
+        self::assertSame($this->listColumns($ownerToken, $projectId)[0]['id'], $data['columnId']);
     }
 
     public function testTicketCanBeCreatedInASprintWithAnAssignee(): void

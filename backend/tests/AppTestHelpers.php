@@ -105,4 +105,21 @@ trait AppTestHelpers
 
         return $this->createProject($ownerToken, $teamId);
     }
+
+    /**
+     * @return list<array{id: string, name: string, position: int}>
+     */
+    private function listColumns(string $ownerToken, string $projectId): array
+    {
+        $this->client->request('GET', "/api/projects/$projectId/columns", server: ['HTTP_AUTHORIZATION' => 'Bearer '.$ownerToken]);
+
+        return json_decode($this->client->getResponse()->getContent(), true);
+    }
+
+    private function lastColumnId(string $ownerToken, string $projectId): string
+    {
+        $columns = $this->listColumns($ownerToken, $projectId);
+
+        return end($columns)['id'];
+    }
 }

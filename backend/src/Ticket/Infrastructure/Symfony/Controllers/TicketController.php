@@ -21,13 +21,14 @@ use App\Ticket\Application\ListTicketSprintHistory\ListTicketSprintHistoryPayloa
 use App\Ticket\Application\ListTicketSprintHistory\TicketSprintHistoryEntry;
 use App\Ticket\Application\ListTickets\ListTicketsHandler;
 use App\Ticket\Application\ListTickets\ListTicketsPayload;
+use App\Ticket\Application\MoveTicketToColumn\MoveTicketToColumnHandler;
+use App\Ticket\Application\MoveTicketToColumn\MoveTicketToColumnPayload;
 use App\Ticket\Application\MoveTicketToSprint\MoveTicketToSprintHandler;
 use App\Ticket\Application\MoveTicketToSprint\MoveTicketToSprintPayload;
 use App\Ticket\Application\Port\TicketSprintHistoryRepositoryInterface;
-use App\Ticket\Application\UpdateTicketStatus\UpdateTicketStatusHandler;
-use App\Ticket\Application\UpdateTicketStatus\UpdateTicketStatusPayload;
 use App\Ticket\Domain\Comment;
 use App\Ticket\Domain\Exception\AssigneeNotAProjectMemberException;
+use App\Ticket\Domain\Exception\ColumnNotInProjectException;
 use App\Ticket\Domain\Exception\NotAProjectMemberException;
 use App\Ticket\Domain\Exception\SprintNotInProjectException;
 use App\Ticket\Domain\Exception\TicketNotFoundException;
@@ -153,11 +154,11 @@ final class TicketController
         return new JsonResponse($this->serializeTicket($ticket, $count));
     }
 
-    public function updateStatus(UpdateTicketStatusHandler $handler, Request $request, #[CurrentUser] SecurityUser $user, string $ticketId): JsonResponse
+    public function moveToColumn(MoveTicketToColumnHandler $handler, TicketSprintHistoryRepositoryInterface $history, Request $request, #[CurrentUser] SecurityUser $user, string $ticketId): JsonResponse
     {
         $data = new JsonBody($request);
 
-        $payload = new UpdateTicketStatusPayload($ticketId, $user->getId(), $data->string('status'));
+        $payload = new MoveTicketToColumnPayload($ticketId, $user->getId(), $data->string('columnId'));
 
         try {
             $ticket = $handler->handle($payload);
@@ -167,9 +168,13 @@ final class TicketController
             return new JsonResponse(['errors' => [$e->getMessage()]], 404);
         } catch (NotAProjectMemberException $e) {
             return new JsonResponse(['errors' => [$e->getMessage()]], 403);
+        } catch (ColumnNotInProjectException $e) {
+            return new JsonResponse(['errors' => [$e->getMessage()]], 422);
         }
 
-        return new JsonResponse($this->serializeTicket($ticket));
+        $count = $history->countByTicketIds([(string) $ticket->getId()])[(string) $ticket->getId()] ?? 0;
+
+        return new JsonResponse($this->serializeTicket($ticket, $count));
     }
 
     public function addComment(AddCommentHandler $handler, Request $request, #[CurrentUser] SecurityUser $user, string $ticketId): JsonResponse
@@ -213,7 +218,7 @@ final class TicketController
             'sprintId' => null !== $ticket->getSprintId() ? (string) $ticket->getSprintId() : null,
             'title' => $ticket->getTitle(),
             'description' => $ticket->getDescription(),
-            'status' => $ticket->getStatus()->value,
+            'columnId' => (string) $ticket->getColumnId(),
             'reporterId' => (string) $ticket->getReporterId(),
             'assigneeId' => null !== $ticket->getAssigneeId() ? (string) $ticket->getAssigneeId() : null,
             'carriedOverCount' => $carriedOverCount,

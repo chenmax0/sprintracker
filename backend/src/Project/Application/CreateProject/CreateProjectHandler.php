@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Project\Application\CreateProject;
 
+use App\Project\Application\Port\DefaultBoardColumnsSeederInterface;
 use App\Project\Application\Port\ProjectIdGeneratorInterface;
 use App\Project\Application\Port\TeamOwnershipCheckerInterface;
 use App\Project\Domain\Exception\NotTeamOwnerException;
@@ -18,6 +19,7 @@ final class CreateProjectHandler
         private ProjectRepositoryInterface $projects,
         private ProjectIdGeneratorInterface $ids,
         private TeamOwnershipCheckerInterface $teamOwnership,
+        private DefaultBoardColumnsSeederInterface $boardColumns,
     ) {
     }
 
@@ -31,6 +33,7 @@ final class CreateProjectHandler
 
         $project = Project::create($this->ids->generate(), new TeamId($payload->teamId), $payload->name);
         $this->projects->save($project);
+        $this->boardColumns->seedDefaults((string) $project->getId());
 
         return $project;
     }

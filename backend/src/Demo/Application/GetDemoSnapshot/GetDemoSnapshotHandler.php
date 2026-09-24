@@ -13,7 +13,7 @@ final class GetDemoSnapshotHandler
     }
 
     /**
-     * @return array{team: array, project: array, members: list<array>, sprints: list<array>, tickets: list<array>}
+     * @return array{team: array, project: array, members: list<array>, sprints: list<array>, tickets: list<array>, columns: list<array>}
      */
     public function handle(GetDemoSnapshotPayload $payload): array
     {

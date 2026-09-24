@@ -38,10 +38,11 @@ class CompleteSprintActionTest extends WebTestCase
             'HTTP_AUTHORIZATION' => 'Bearer '.$ownerToken,
         ], content: json_encode(['title' => 'Done ticket 2', 'sprintId' => $sprintId]));
         $doneTicketId = json_decode($this->client->getResponse()->getContent(), true)['id'];
-        $this->client->request('PATCH', "/api/tickets/$doneTicketId/status", server: [
+        $lastColumnId = $this->lastColumnId($ownerToken, $projectId);
+        $this->client->request('PATCH', "/api/tickets/$doneTicketId/column", server: [
             'CONTENT_TYPE' => 'application/json',
             'HTTP_AUTHORIZATION' => 'Bearer '.$ownerToken,
-        ], content: json_encode(['status' => 'done']));
+        ], content: json_encode(['columnId' => $lastColumnId]));
 
         $this->client->request('POST', "/api/sprints/$sprintId/complete", server: [
             'CONTENT_TYPE' => 'application/json',
