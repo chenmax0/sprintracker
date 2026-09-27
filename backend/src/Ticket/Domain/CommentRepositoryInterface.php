@@ -6,6 +6,8 @@ namespace App\Ticket\Domain;
 
 interface CommentRepositoryInterface
 {
+    public function findById(CommentId $id): ?Comment;
+
     public function save(Comment $comment): void;
 
     /**

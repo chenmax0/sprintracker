@@ -28,6 +28,11 @@ ticket_add_comment:
     controller: App\Ticket\Infrastructure\Symfony\Controllers\TicketController::addComment
     methods: [POST]
 
+ticket_edit_comment:
+    path: /api/comments/{commentId}
+    controller: App\Ticket\Infrastructure\Symfony\Controllers\TicketController::editComment
+    methods: [PATCH]
+
 ticket_list_comments:
     path: /api/tickets/{ticketId}/comments
     controller: App\Ticket\Infrastructure\Symfony\Controllers\TicketController::listComments

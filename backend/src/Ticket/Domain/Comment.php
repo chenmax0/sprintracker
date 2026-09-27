@@ -12,12 +12,13 @@ final class Comment
         private MemberId $authorId,
         private string $content,
         private \DateTimeImmutable $createdAt,
+        private ?\DateTimeImmutable $updatedAt,
     ) {
     }
 
     public static function create(CommentId $id, TicketId $ticketId, MemberId $authorId, string $content): self
     {
-        return new self($id, $ticketId, $authorId, $content, new \DateTimeImmutable());
+        return new self($id, $ticketId, $authorId, $content, new \DateTimeImmutable(), null);
     }
 
     public static function fromPersistence(
@@ -26,8 +27,15 @@ final class Comment
         MemberId $authorId,
         string $content,
         \DateTimeImmutable $createdAt,
+        ?\DateTimeImmutable $updatedAt,
     ): self {
-        return new self($id, $ticketId, $authorId, $content, $createdAt);
+        return new self($id, $ticketId, $authorId, $content, $createdAt, $updatedAt);
+    }
+
+    public function edit(string $content): void
+    {
+        $this->content = $content;
+        $this->updatedAt = new \DateTimeImmutable();
     }
 
     public function getId(): CommentId
@@ -53,5 +61,10 @@ final class Comment
     public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
+    }
+
+    public function getUpdatedAt(): ?\DateTimeImmutable
+    {
+        return $this->updatedAt;
     }
 }

@@ -12,6 +12,8 @@ use App\Ticket\Application\AssignTicket\AssignTicketHandler;
 use App\Ticket\Application\AssignTicket\AssignTicketPayload;
 use App\Ticket\Application\CreateTicket\CreateTicketHandler;
 use App\Ticket\Application\CreateTicket\CreateTicketPayload;
+use App\Ticket\Application\EditComment\EditCommentHandler;
+use App\Ticket\Application\EditComment\EditCommentPayload;
 use App\Ticket\Application\GetTicket\GetTicketHandler;
 use App\Ticket\Application\GetTicket\GetTicketPayload;
 use App\Ticket\Application\ListComments\ListCommentsHandler;
@@ -29,7 +31,9 @@ use App\Ticket\Application\Port\TicketSprintHistoryRepositoryInterface;
 use App\Ticket\Domain\Comment;
 use App\Ticket\Domain\Exception\AssigneeNotAProjectMemberException;
 use App\Ticket\Domain\Exception\ColumnNotInProjectException;
+use App\Ticket\Domain\Exception\CommentNotFoundException;
 use App\Ticket\Domain\Exception\NotAProjectMemberException;
+use App\Ticket\Domain\Exception\NotCommentAuthorException;
 use App\Ticket\Domain\Exception\SprintNotInProjectException;
 use App\Ticket\Domain\Exception\TicketNotFoundException;
 use App\Ticket\Domain\Ticket;
@@ -196,6 +200,25 @@ final class TicketController
         return new JsonResponse($this->serializeComment($comment), 201);
     }
 
+    public function editComment(EditCommentHandler $handler, Request $request, #[CurrentUser] SecurityUser $user, string $commentId): JsonResponse
+    {
+        $data = new JsonBody($request);
+
+        $payload = new EditCommentPayload($commentId, $user->getId(), $data->string('content'));
+
+        try {
+            $comment = $handler->handle($payload);
+        } catch (LazyAssertionException $e) {
+            return $this->validationErrorResponse($e);
+        } catch (CommentNotFoundException $e) {
+            return new JsonResponse(['errors' => [$e->getMessage()]], 404);
+        } catch (NotCommentAuthorException $e) {
+            return new JsonResponse(['errors' => [$e->getMessage()]], 403);
+        }
+
+        return new JsonResponse($this->serializeComment($comment));
+    }
+
     public function listComments(ListCommentsHandler $handler, #[CurrentUser] SecurityUser $user, string $ticketId): JsonResponse
     {
         try {
@@ -241,6 +264,7 @@ final class TicketController
             'authorId' => (string) $comment->getAuthorId(),
             'content' => $comment->getContent(),
             'createdAt' => $comment->getCreatedAt()->format(\DateTimeInterface::ATOM),
+            'updatedAt' => $comment->getUpdatedAt()?->format(\DateTimeInterface::ATOM),
         ];
     }
 

@@ -17,12 +17,29 @@ final class SqlCommentRepository implements CommentRepositoryInterface
     {
     }
 
+    public function findById(CommentId $id): ?Comment
+    {
+        $row = $this->connection->fetchAssociative(
+            'SELECT id, ticket_id, author_id, content, created_at, updated_at FROM comment WHERE id = :id',
+            ['id' => (string) $id],
+        );
+
+        if (false === $row) {
+            return null;
+        }
+
+        return $this->hydrate($row);
+    }
+
     public function save(Comment $comment): void
     {
         $this->connection->executeStatement(
             <<<'SQL'
-                INSERT INTO comment (id, ticket_id, author_id, content, created_at)
-                VALUES (:id, :ticket_id, :author_id, :content, :created_at)
+                INSERT INTO comment (id, ticket_id, author_id, content, created_at, updated_at)
+                VALUES (:id, :ticket_id, :author_id, :content, :created_at, :updated_at)
+                ON CONFLICT (id) DO UPDATE SET
+                    content = EXCLUDED.content,
+                    updated_at = EXCLUDED.updated_at
                 SQL,
             [
                 'id' => (string) $comment->getId(),
@@ -30,6 +47,7 @@ final class SqlCommentRepository implements CommentRepositoryInterface
                 'author_id' => (string) $comment->getAuthorId(),
                 'content' => $comment->getContent(),
                 'created_at' => $comment->getCreatedAt()->format('Y-m-d H:i:s'),
+                'updated_at' => $comment->getUpdatedAt()?->format('Y-m-d H:i:s'),
             ],
         );
     }
@@ -37,19 +55,22 @@ final class SqlCommentRepository implements CommentRepositoryInterface
     public function findByTicketId(TicketId $ticketId): array
     {
         $rows = $this->connection->fetchAllAssociative(
-            'SELECT id, ticket_id, author_id, content, created_at FROM comment WHERE ticket_id = :ticket_id ORDER BY created_at ASC',
+            'SELECT id, ticket_id, author_id, content, created_at, updated_at FROM comment WHERE ticket_id = :ticket_id ORDER BY created_at ASC',
             ['ticket_id' => (string) $ticketId],
         );
 
-        return array_map(
-            static fn (array $row) => Comment::fromPersistence(
-                new CommentId($row['id']),
-                new TicketId($row['ticket_id']),
-                new MemberId($row['author_id']),
-                $row['content'],
-                new \DateTimeImmutable($row['created_at']),
-            ),
-            $rows,
+        return array_map(fn (array $row) => $this->hydrate($row), $rows);
+    }
+
+    private function hydrate(array $row): Comment
+    {
+        return Comment::fromPersistence(
+            new CommentId($row['id']),
+            new TicketId($row['ticket_id']),
+            new MemberId($row['author_id']),
+            $row['content'],
+            new \DateTimeImmutable($row['created_at']),
+            null !== $row['updated_at'] ? new \DateTimeImmutable($row['updated_at']) : null,
         );
     }
 }

@@ -86,4 +86,96 @@ class CommentActionTest extends WebTestCase
 
         self::assertResponseStatusCodeSame(404);
     }
+
+    public function testAuthorCanEditTheirOwnComment(): void
+    {
+        $ownerToken = $this->registerAndLogin('jane@example.com');
+        $projectId = $this->createTeamAndProject($ownerToken);
+        $ticketId = $this->createTicket($ownerToken, $projectId);
+
+        $this->client->request('POST', "/api/tickets/$ticketId/comments", server: [
+            'CONTENT_TYPE' => 'application/json',
+            'HTTP_AUTHORIZATION' => 'Bearer '.$ownerToken,
+        ], content: json_encode(['content' => 'Original']));
+        $commentId = json_decode($this->client->getResponse()->getContent(), true)['id'];
+
+        $this->client->request('PATCH', "/api/comments/$commentId", server: [
+            'CONTENT_TYPE' => 'application/json',
+            'HTTP_AUTHORIZATION' => 'Bearer '.$ownerToken,
+        ], content: json_encode(['content' => 'Edited']));
+
+        self::assertResponseStatusCodeSame(200);
+        $comment = json_decode($this->client->getResponse()->getContent(), true);
+        self::assertSame('Edited', $comment['content']);
+        self::assertNotNull($comment['updatedAt']);
+    }
+
+    public function testNewCommentHasNoUpdatedAt(): void
+    {
+        $ownerToken = $this->registerAndLogin('jane@example.com');
+        $projectId = $this->createTeamAndProject($ownerToken);
+        $ticketId = $this->createTicket($ownerToken, $projectId);
+
+        $this->client->request('POST', "/api/tickets/$ticketId/comments", server: [
+            'CONTENT_TYPE' => 'application/json',
+            'HTTP_AUTHORIZATION' => 'Bearer '.$ownerToken,
+        ], content: json_encode(['content' => 'Original']));
+
+        self::assertNull(json_decode($this->client->getResponse()->getContent(), true)['updatedAt']);
+    }
+
+    public function testOnlyTheAuthorCanEditAComment(): void
+    {
+        $ownerToken = $this->registerAndLogin('jane@example.com');
+        [$bobToken] = $this->registerAndLoginWithId('bob@example.com');
+        $teamId = $this->createTeam($ownerToken);
+        $this->addMember($ownerToken, $teamId, 'bob@example.com');
+        $projectId = $this->createProject($ownerToken, $teamId);
+        $ticketId = $this->createTicket($ownerToken, $projectId);
+
+        $this->client->request('POST', "/api/tickets/$ticketId/comments", server: [
+            'CONTENT_TYPE' => 'application/json',
+            'HTTP_AUTHORIZATION' => 'Bearer '.$ownerToken,
+        ], content: json_encode(['content' => 'Original']));
+        $commentId = json_decode($this->client->getResponse()->getContent(), true)['id'];
+
+        $this->client->request('PATCH', "/api/comments/$commentId", server: [
+            'CONTENT_TYPE' => 'application/json',
+            'HTTP_AUTHORIZATION' => 'Bearer '.$bobToken,
+        ], content: json_encode(['content' => 'Sneaky edit']));
+
+        self::assertResponseStatusCodeSame(403);
+    }
+
+    public function testEditingAnUnknownCommentReturns404(): void
+    {
+        $ownerToken = $this->registerAndLogin('jane@example.com');
+
+        $this->client->request('PATCH', '/api/comments/00000000-0000-7000-8000-000000000000', server: [
+            'CONTENT_TYPE' => 'application/json',
+            'HTTP_AUTHORIZATION' => 'Bearer '.$ownerToken,
+        ], content: json_encode(['content' => 'Edited']));
+
+        self::assertResponseStatusCodeSame(404);
+    }
+
+    public function testEditRejectsBlankContent(): void
+    {
+        $ownerToken = $this->registerAndLogin('jane@example.com');
+        $projectId = $this->createTeamAndProject($ownerToken);
+        $ticketId = $this->createTicket($ownerToken, $projectId);
+
+        $this->client->request('POST', "/api/tickets/$ticketId/comments", server: [
+            'CONTENT_TYPE' => 'application/json',
+            'HTTP_AUTHORIZATION' => 'Bearer '.$ownerToken,
+        ], content: json_encode(['content' => 'Original']));
+        $commentId = json_decode($this->client->getResponse()->getContent(), true)['id'];
+
+        $this->client->request('PATCH', "/api/comments/$commentId", server: [
+            'CONTENT_TYPE' => 'application/json',
+            'HTTP_AUTHORIZATION' => 'Bearer '.$ownerToken,
+        ], content: json_encode(['content' => '']));
+
+        self::assertResponseStatusCodeSame(422);
+    }
 }
