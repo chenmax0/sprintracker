@@ -4,6 +4,7 @@ import {
   assignTicket,
   type CreateTicketInput,
   createTicket,
+  editComment,
   getTicket,
   getTicketSprintHistory,
   listComments,
@@ -103,6 +104,15 @@ export function useAddComment(ticketId: string) {
 
   return useMutation({
     mutationFn: (content: string) => addComment(ticketId, content),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tickets', ticketId, 'comments'] }),
+  })
+}
+
+export function useEditComment(ticketId: string) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ commentId, content }: { commentId: string; content: string }) => editComment(commentId, content),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tickets', ticketId, 'comments'] }),
   })
 }

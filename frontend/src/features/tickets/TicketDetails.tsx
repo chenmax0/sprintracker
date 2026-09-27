@@ -3,12 +3,94 @@ import { Link } from 'react-router'
 import { ApiError } from '../../lib/apiClient'
 import { Card } from '../../lib/Card'
 import { MemberLabel } from '../../lib/MemberLabel'
+import type { MemberDirectory } from '../../lib/memberDirectory'
 import { toMemberDirectory } from '../../lib/memberDirectory'
+import { useMe } from '../auth/hooks'
 import { useColumns } from '../board/hooks'
 import { useProject } from '../projects/hooks'
 import { useSprints } from '../sprints/hooks'
 import { useTeamMembers } from '../teams/hooks'
-import { useAddComment, useAssignTicket, useComments, useMoveTicketToColumn, useTicket, useTicketSprintHistory } from './hooks'
+import type { Comment } from './api'
+import {
+  useAddComment,
+  useAssignTicket,
+  useComments,
+  useEditComment,
+  useMoveTicketToColumn,
+  useTicket,
+  useTicketSprintHistory,
+} from './hooks'
+
+function CommentItem({
+  comment,
+  memberDirectory,
+  canEdit,
+  onEdit,
+  isSaving,
+}: {
+  comment: Comment
+  memberDirectory: MemberDirectory
+  canEdit: boolean
+  onEdit: (content: string) => void
+  isSaving: boolean
+}) {
+  const [isEditing, setIsEditing] = useState(false)
+  const [draftContent, setDraftContent] = useState(comment.content)
+
+  function handleSubmit(event: FormEvent) {
+    event.preventDefault()
+    onEdit(draftContent)
+    setIsEditing(false)
+  }
+
+  return (
+    <li className="rounded-md border border-gray-200 p-3 text-sm">
+      <div className="mb-1 flex items-center gap-2 text-xs text-gray-500">
+        <MemberLabel memberId={comment.authorId} directory={memberDirectory} />
+        <span>{new Date(comment.createdAt).toLocaleString()}</span>
+        {comment.updatedAt && <span className="text-gray-400">(modifié)</span>}
+        {canEdit && !isEditing && (
+          <button type="button" onClick={() => setIsEditing(true)} className="ml-auto text-indigo-600 hover:underline">
+            Modifier
+          </button>
+        )}
+      </div>
+      {isEditing ? (
+        <form onSubmit={handleSubmit} className="flex flex-col gap-2">
+          <textarea
+            autoFocus
+            value={draftContent}
+            onChange={(e) => setDraftContent(e.target.value)}
+            required
+            rows={3}
+            className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+          />
+          <div className="flex gap-2">
+            <button
+              type="submit"
+              disabled={isSaving}
+              className="rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-500 disabled:opacity-50"
+            >
+              Enregistrer
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setDraftContent(comment.content)
+                setIsEditing(false)
+              }}
+              className="rounded-md border border-gray-300 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50"
+            >
+              Annuler
+            </button>
+          </div>
+        </form>
+      ) : (
+        <p className="text-gray-800">{comment.content}</p>
+      )}
+    </li>
+  )
+}
 
 /**
  * Everything a ticket's detail view needs (metadata, history, reassignment,
@@ -17,6 +99,7 @@ import { useAddComment, useAssignTicket, useComments, useMoveTicketToColumn, use
  */
 export function TicketDetails({ ticketId, showProjectLink = false }: { ticketId: string; showProjectLink?: boolean }) {
   const { data: ticket } = useTicket(ticketId)
+  const { data: me } = useMe()
   const { data: project } = useProject(ticket?.projectId ?? '')
   const { data: members } = useTeamMembers(project?.teamId ?? '')
   const memberDirectory = toMemberDirectory(members)
@@ -25,6 +108,7 @@ export function TicketDetails({ ticketId, showProjectLink = false }: { ticketId:
   const { data: columns } = useColumns(ticket?.projectId ?? '')
   const { data: comments } = useComments(ticketId)
   const addComment = useAddComment(ticketId)
+  const editComment = useEditComment(ticketId)
   const { data: sprints } = useSprints(ticket?.projectId ?? '')
   const { data: sprintHistory } = useTicketSprintHistory(ticketId)
   const sprintNames = new Map((sprints ?? []).map((sprint) => [sprint.id, sprint.name]))
@@ -141,16 +225,22 @@ export function TicketDetails({ ticketId, showProjectLink = false }: { ticketId:
       <Card title="Commentaires">
         <ul className="mb-4 flex flex-col gap-3">
           {comments?.map((comment) => (
-            <li key={comment.id} className="rounded-md border border-gray-200 p-3 text-sm">
-              <div className="mb-1 flex items-center gap-2 text-xs text-gray-500">
-                <MemberLabel memberId={comment.authorId} directory={memberDirectory} />
-                <span>{new Date(comment.createdAt).toLocaleString()}</span>
-              </div>
-              <p className="text-gray-800">{comment.content}</p>
-            </li>
+            <CommentItem
+              key={comment.id}
+              comment={comment}
+              memberDirectory={memberDirectory}
+              canEdit={comment.authorId === me?.id}
+              isSaving={editComment.isPending}
+              onEdit={(content) => editComment.mutate({ commentId: comment.id, content })}
+            />
           ))}
           {comments?.length === 0 && <p className="text-sm text-gray-500">Aucun commentaire.</p>}
         </ul>
+        {editComment.isError && (
+          <p className="mb-2 text-sm text-red-600">
+            {editComment.error instanceof ApiError ? editComment.error.message : 'Erreur lors de la modification'}
+          </p>
+        )}
         <form onSubmit={handleAddComment} className="flex flex-col gap-2">
           <textarea
             value={content}

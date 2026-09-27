@@ -19,6 +19,7 @@ export interface Comment {
   authorId: string
   content: string
   createdAt: string
+  updatedAt: string | null
 }
 
 export interface TicketSprintHistoryEntry {
@@ -63,6 +64,10 @@ export function listComments(ticketId: string): Promise<Comment[]> {
 
 export function addComment(ticketId: string, content: string): Promise<Comment> {
   return apiClient.post(`/api/tickets/${ticketId}/comments`, { content })
+}
+
+export function editComment(commentId: string, content: string): Promise<Comment> {
+  return apiClient.patch(`/api/comments/${commentId}`, { content })
 }
 
 export function getTicketSprintHistory(ticketId: string): Promise<TicketSprintHistoryEntry[]> {
