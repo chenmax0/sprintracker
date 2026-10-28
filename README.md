@@ -34,6 +34,16 @@ make logs
 make down
 ```
 
+## Administration et suivi de fréquentation
+
+Le front envoie un ping anonyme (`POST /api/track`) avec un identifiant aléatoire stocké dans le `localStorage` du navigateur. Le back enregistre **une ligne par visiteur et par heure UTC** dans `visitor_activity` ; si le visiteur est connecté, son compte est rattaché. Les visiteurs uniques par heure/jour/semaine/mois sont des `COUNT(DISTINCT visitor_id)` calculés à la volée, dans le fuseau horaire de l'admin.
+
+Le dashboard est sur `/admin` (API : `GET /api/admin/analytics/visitors`), réservé au rôle `ROLE_ADMIN`. Pour donner ce rôle à un compte existant :
+
+```bash
+make console cmd="app:user:promote-admin vous@exemple.fr"
+```
+
 ## Production
 
 ```bash

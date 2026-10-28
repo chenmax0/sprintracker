@@ -21,6 +21,14 @@ export function AppLayout() {
             Sprintracker
           </Link>
           <div className="flex items-center gap-3">
+            {user?.isAdmin && (
+              <Link
+                to="/admin"
+                className="rounded-md px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+              >
+                Administration
+              </Link>
+            )}
             {user && (
               <span
                 className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-100 text-xs font-semibold text-indigo-700"

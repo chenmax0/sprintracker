@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ApiError } from '../../lib/apiClient'
+import { trackVisit } from '../analytics/tracking'
 import { login, logout, me, register } from './api'
 
 export const meQueryKey = ['auth', 'me']
@@ -23,7 +24,11 @@ export function useLogin() {
 
   return useMutation({
     mutationFn: ({ email, password }: LoginInput) => login(email, password),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: meQueryKey }),
+    onSuccess: () => {
+      // The login cookie is now set: link this visitor to their account right away.
+      trackVisit({ force: true })
+      return queryClient.invalidateQueries({ queryKey: meQueryKey })
+    },
   })
 }
 

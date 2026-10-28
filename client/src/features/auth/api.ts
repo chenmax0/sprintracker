@@ -4,6 +4,7 @@ export interface User {
   id: string
   email: string
   name: string
+  isAdmin?: boolean
 }
 
 export function login(email: string, password: string): Promise<{ token: string }> {
