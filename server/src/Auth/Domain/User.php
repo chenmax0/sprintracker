@@ -31,6 +31,18 @@ class User
         return new self($id, $email, $name, $hashedPassword, $roles);
     }
 
+    public function grantAdmin(): void
+    {
+        if (!$this->isAdmin()) {
+            $this->roles[] = 'ROLE_ADMIN';
+        }
+    }
+
+    public function isAdmin(): bool
+    {
+        return in_array('ROLE_ADMIN', $this->roles, true);
+    }
+
     public function getId(): UserId
     {
         return $this->id;

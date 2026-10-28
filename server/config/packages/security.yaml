@@ -23,6 +23,11 @@ security:
                 password_path: password
                 success_handler: lexik_jwt_authentication.handler.authentication_success
                 failure_handler: lexik_jwt_authentication.handler.authentication_failure
+        # Public and best-effort identification (see OptionalUserIdResolver): a
+        # stale JWT cookie must not turn an anonymous page view into a 401.
+        track:
+            pattern: ^/api/track
+            security: false
         api:
             pattern: ^/api
             stateless: true
@@ -33,6 +38,7 @@ security:
         - { path: ^/api/login, roles: PUBLIC_ACCESS }
         - { path: ^/api/register, roles: PUBLIC_ACCESS }
         - { path: ^/api/demo, roles: PUBLIC_ACCESS }
+        - { path: ^/api/admin, roles: ROLE_ADMIN }
         - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
 
 when@test:

@@ -51,6 +51,10 @@ services:
         resource: '../src/Board/Infrastructure/Symfony/Controllers/'
         tags: ['controller.service_arguments']
 
+    App\Analytics\Infrastructure\Symfony\Controllers\:
+        resource: '../src/Analytics/Infrastructure/Symfony/Controllers/'
+        tags: ['controller.service_arguments']
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
     App\Auth\Domain\UserRepositoryInterface:
@@ -128,3 +132,9 @@ services:
     App\Demo\Infrastructure\Persistence\Sql\SqlDemoRepository:
         arguments:
             $demoTeamId: '%demo_team_id%'
+
+    App\Analytics\Application\Port\VisitorActivityRecorderInterface:
+        alias: App\Analytics\Infrastructure\Persistence\Sql\SqlVisitorActivityRecorder
+
+    App\Analytics\Application\Port\VisitorStatsQueryInterface:
+        alias: App\Analytics\Infrastructure\Persistence\Sql\SqlVisitorStatsQuery

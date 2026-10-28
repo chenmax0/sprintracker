@@ -1,0 +1,9 @@
+analytics_track:
+    path: /api/track
+    controller: App\Analytics\Infrastructure\Symfony\Controllers\TrackingController::track
+    methods: [POST]
+
+analytics_admin_visitors:
+    path: /api/admin/analytics/visitors
+    controller: App\Analytics\Infrastructure\Symfony\Controllers\AdminAnalyticsController::visitors
+    methods: [GET]

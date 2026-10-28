@@ -60,6 +60,7 @@ final class AuthenticationController
             'id' => $user->getId(),
             'email' => $user->getUserIdentifier(),
             'name' => $user->getName(),
+            'isAdmin' => in_array('ROLE_ADMIN', $user->getRoles(), true),
         ]);
     }
 
