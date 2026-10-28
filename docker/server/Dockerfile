@@ -15,12 +15,12 @@ WORKDIR /srv/app
 FROM base AS dev
 
 RUN docker-php-ext-enable opcache
-COPY docker/backend/php/dev.ini /usr/local/etc/php/conf.d/zz-app.ini
+COPY docker/server/php/dev.ini /usr/local/etc/php/conf.d/zz-app.ini
 
-COPY backend/composer.json backend/composer.lock backend/symfony.lock ./
+COPY server/composer.json server/composer.lock server/symfony.lock ./
 RUN composer install --prefer-dist --no-scripts --no-autoloader
 
-COPY backend/ .
+COPY server/ .
 RUN composer dump-autoload --optimize
 
 CMD ["php-fpm"]
@@ -30,12 +30,12 @@ FROM base AS prod
 
 ENV APP_ENV=prod
 
-COPY docker/backend/php/prod.ini /usr/local/etc/php/conf.d/zz-app.ini
+COPY docker/server/php/prod.ini /usr/local/etc/php/conf.d/zz-app.ini
 
-COPY backend/composer.json backend/composer.lock backend/symfony.lock ./
+COPY server/composer.json server/composer.lock server/symfony.lock ./
 RUN composer install --prefer-dist --no-dev --no-scripts --no-autoloader --no-progress
 
-COPY backend/ .
+COPY server/ .
 
 RUN composer dump-autoload --optimize --no-dev --classmap-authoritative \
     && composer dump-env prod \
@@ -50,6 +50,6 @@ CMD ["php-fpm"]
 FROM nginx:1.27-alpine AS prod-nginx
 
 COPY --from=prod /srv/app/public /srv/app/public
-COPY docker/backend/nginx/default.conf /etc/nginx/conf.d/default.conf
+COPY docker/server/nginx/default.conf /etc/nginx/conf.d/default.conf
 
 CMD ["nginx", "-g", "daemon off;"]

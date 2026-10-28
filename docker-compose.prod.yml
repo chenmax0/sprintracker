@@ -17,7 +17,7 @@ services:
   php:
     build:
       context: .
-      dockerfile: docker/backend/Dockerfile
+      dockerfile: docker/server/Dockerfile
       target: prod
     environment:
       APP_ENV: prod
@@ -32,7 +32,7 @@ services:
   nginx:
     build:
       context: .
-      dockerfile: docker/backend/Dockerfile
+      dockerfile: docker/server/Dockerfile
       target: prod-nginx
     depends_on:
       - php
@@ -41,7 +41,7 @@ services:
   frontend:
     build:
       context: .
-      dockerfile: docker/frontend/Dockerfile
+      dockerfile: docker/client/Dockerfile
       target: prod
       args:
         VITE_API_URL: ${VITE_API_URL}

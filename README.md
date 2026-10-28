@@ -5,8 +5,8 @@ Mini-Jira pour tracker un sprint. Back-end Symfony (API), front-end React (Vite)
 ## Structure
 
 ```
-backend/    Symfony (API)
-frontend/   React + Vite
+server/     Symfony (API)
+client/     React + Vite
 docker/     Dockerfiles et configs (php, nginx, caddy) pour les deux services
 ```
 
@@ -20,7 +20,7 @@ make up
 - Back-end (API, via nginx) : http://localhost:8000
 - PostgreSQL : localhost:5432
 
-Le code est monté en volume : toute modification dans `backend/` ou `frontend/` est prise en compte à chaud.
+Le code est monté en volume : toute modification dans `server/` ou `client/` est prise en compte à chaud.
 
 Commandes utiles (voir `make help` pour la liste complète) :
 
