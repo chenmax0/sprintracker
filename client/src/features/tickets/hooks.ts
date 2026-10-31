@@ -1,12 +1,14 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, type QueryClient, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   addComment,
   assignTicket,
+  type BacklogQuery,
   type CreateTicketInput,
   createTicket,
   editComment,
   getTicket,
   getTicketSprintHistory,
+  listBacklog,
   listComments,
   listTickets,
   moveTicketToColumn,
@@ -18,6 +20,22 @@ export function useTickets(projectId: string) {
   return useQuery({ queryKey: ['projects', projectId, 'tickets'], queryFn: () => listTickets(projectId) })
 }
 
+// The backlog is a server-side view of the tickets: anything that can move a
+// ticket in or out of it (or change what it shows) must refresh it too.
+export function invalidateTickets(queryClient: QueryClient, projectId: string) {
+  queryClient.invalidateQueries({ queryKey: ['projects', projectId, 'tickets'] })
+  queryClient.invalidateQueries({ queryKey: ['projects', projectId, 'backlog'] })
+}
+
+export function useBacklog(projectId: string, query: BacklogQuery) {
+  return useQuery({
+    queryKey: ['projects', projectId, 'backlog', query],
+    queryFn: () => listBacklog(projectId, query),
+    // Keep the current page on screen while the next one loads: no flash, no layout jump.
+    placeholderData: keepPreviousData,
+  })
+}
+
 export function useTicket(ticketId: string) {
   return useQuery({ queryKey: ['tickets', ticketId], queryFn: () => getTicket(ticketId) })
 }
@@ -27,7 +45,7 @@ export function useCreateTicket(projectId: string) {
 
   return useMutation({
     mutationFn: (input: CreateTicketInput) => createTicket(projectId, input),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['projects', projectId, 'tickets'] }),
+    onSuccess: () => invalidateTickets(queryClient, projectId),
   })
 }
 
@@ -38,7 +56,7 @@ export function useAssignTicket(ticketId: string) {
     mutationFn: (assigneeId: string | null) => assignTicket(ticketId, assigneeId),
     onSuccess: (ticket) => {
       queryClient.setQueryData(['tickets', ticketId], ticket)
-      queryClient.invalidateQueries({ queryKey: ['projects', ticket.projectId, 'tickets'] })
+      invalidateTickets(queryClient, ticket.projectId)
     },
   })
 }
@@ -81,7 +99,7 @@ export function useMoveTicketToColumn(projectId: string) {
         ),
       )
     },
-    onSettled: () => queryClient.invalidateQueries({ queryKey }),
+    onSettled: () => invalidateTickets(queryClient, projectId),
   })
 }
 
@@ -91,7 +109,7 @@ export function useMoveTicketToSprint(projectId: string) {
   return useMutation({
     mutationFn: ({ ticketId, sprintId }: { ticketId: string; sprintId: string | null }) =>
       moveTicketToSprint(ticketId, sprintId),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['projects', projectId, 'tickets'] }),
+    onSuccess: () => invalidateTickets(queryClient, projectId),
   })
 }
 

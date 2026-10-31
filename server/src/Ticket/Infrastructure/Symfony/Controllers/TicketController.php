@@ -21,6 +21,10 @@ use App\Ticket\Application\ListComments\ListCommentsPayload;
 use App\Ticket\Application\ListTicketSprintHistory\ListTicketSprintHistoryHandler;
 use App\Ticket\Application\ListTicketSprintHistory\ListTicketSprintHistoryPayload;
 use App\Ticket\Application\ListTicketSprintHistory\TicketSprintHistoryEntry;
+use App\Ticket\Application\ListBacklog\BacklogSort;
+use App\Ticket\Application\ListBacklog\BacklogTicketView;
+use App\Ticket\Application\ListBacklog\ListBacklogHandler;
+use App\Ticket\Application\ListBacklog\ListBacklogPayload;
 use App\Ticket\Application\ListTickets\ListTicketsHandler;
 use App\Ticket\Application\ListTickets\ListTicketsPayload;
 use App\Ticket\Application\MoveTicketToColumn\MoveTicketToColumnHandler;
@@ -84,6 +88,45 @@ final class TicketController
             fn (Ticket $ticket) => $this->serializeTicket($ticket, $counts[(string) $ticket->getId()] ?? 0),
             $tickets,
         ));
+    }
+
+    public function backlog(ListBacklogHandler $handler, Request $request, #[CurrentUser] SecurityUser $user, string $projectId): JsonResponse
+    {
+        $query = $request->query->all();
+        $text = static fn (string $key): ?string => is_string($query[$key] ?? null) && '' !== $query[$key] ? $query[$key] : null;
+        $number = static fn (string $key, int $default): int => filter_var($query[$key] ?? $default, FILTER_VALIDATE_INT, FILTER_NULL_ON_FAILURE) ?? $default;
+
+        $payload = new ListBacklogPayload(
+            $projectId,
+            $user->getId(),
+            $text('search'),
+            $text('assignee'),
+            $text('sort') ?? BacklogSort::Oldest->value,
+            $number('page', 1),
+            $number('perPage', 25),
+        );
+
+        try {
+            $page = $handler->handle($payload);
+        } catch (LazyAssertionException $e) {
+            return $this->validationErrorResponse($e);
+        } catch (NotAProjectMemberException $e) {
+            return new JsonResponse(['errors' => [$e->getMessage()]], 403);
+        }
+
+        return new JsonResponse([
+            'items' => array_map(static fn (BacklogTicketView $ticket) => [
+                'id' => $ticket->id,
+                'number' => $ticket->number,
+                'title' => $ticket->title,
+                'assigneeId' => $ticket->assigneeId,
+                'createdAt' => $ticket->createdAt,
+                'carriedOverCount' => $ticket->carriedOverCount,
+            ], $page->items),
+            'total' => $page->total,
+            'page' => $payload->page,
+            'perPage' => $payload->perPage,
+        ]);
     }
 
     public function show(GetTicketHandler $handler, TicketSprintHistoryRepositoryInterface $history, #[CurrentUser] SecurityUser $user, string $ticketId): JsonResponse

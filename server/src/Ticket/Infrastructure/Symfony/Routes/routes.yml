@@ -8,6 +8,11 @@ ticket_list:
     controller: App\Ticket\Infrastructure\Symfony\Controllers\TicketController::list
     methods: [GET]
 
+ticket_backlog:
+    path: /api/projects/{projectId}/backlog
+    controller: App\Ticket\Infrastructure\Symfony\Controllers\TicketController::backlog
+    methods: [GET]
+
 ticket_show:
     path: /api/tickets/{ticketId}
     controller: App\Ticket\Infrastructure\Symfony\Controllers\TicketController::show

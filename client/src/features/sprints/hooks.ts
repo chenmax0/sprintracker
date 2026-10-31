@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { invalidateTickets } from '../tickets/hooks'
 import { completeSprint, launchSprint, listSprints } from './api'
 
 export function useSprints(projectId: string) {
@@ -25,7 +26,7 @@ export function useLaunchSprint(projectId: string) {
     mutationFn: ({ startDate, endDate }: LaunchSprintInput) => launchSprint(projectId, startDate, endDate),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projects', projectId, 'sprints'] })
-      queryClient.invalidateQueries({ queryKey: ['projects', projectId, 'tickets'] })
+      invalidateTickets(queryClient, projectId)
     },
   })
 }
@@ -35,6 +36,10 @@ export function useCompleteSprint(projectId: string) {
 
   return useMutation({
     mutationFn: (sprintId: string) => completeSprint(sprintId),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['projects', projectId, 'sprints'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects', projectId, 'sprints'] })
+      // Unfinished tickets of the completed sprint now belong to the backlog.
+      invalidateTickets(queryClient, projectId)
+    },
   })
 }

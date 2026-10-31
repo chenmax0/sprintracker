@@ -117,6 +117,9 @@ services:
     App\Ticket\Application\Port\ColumnLookupInterface:
         alias: App\Ticket\Infrastructure\Persistence\Sql\SqlColumnLookup
 
+    App\Ticket\Application\Port\BacklogQueryInterface:
+        alias: App\Ticket\Infrastructure\Persistence\Sql\SqlBacklogQuery
+
     App\Board\Domain\BoardColumnRepositoryInterface:
         alias: App\Board\Infrastructure\Persistence\Sql\SqlBoardColumnRepository
 

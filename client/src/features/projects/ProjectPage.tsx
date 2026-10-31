@@ -11,9 +11,8 @@ import { useCompleteSprint } from '../sprints/hooks'
 import { ConfirmModal } from '../../lib/ConfirmModal'
 import { MembersModal } from '../teams/MembersModal'
 import { useTeamMembers } from '../teams/hooks'
-import { BacklogModal } from '../tickets/BacklogModal'
 import { CreateTicketModal } from '../tickets/CreateTicketModal'
-import { useTickets } from '../tickets/hooks'
+import { useBacklog, useTickets } from '../tickets/hooks'
 import { ProjectKanbanBoard } from '../tickets/ProjectKanbanBoard'
 import { TicketPanel } from '../tickets/TicketPanel'
 import { useProject } from './hooks'
@@ -27,12 +26,13 @@ export function ProjectPage() {
   const { data: sprints } = useSprints(projectId)
   const { data: columns } = useColumns(projectId)
   const { data: tickets } = useTickets(projectId)
+  // Only the total is needed here; the backlog itself lives on its own page.
+  const { data: backlog } = useBacklog(projectId, { search: '', assignee: '', sort: 'oldest', page: 1, perPage: 1 })
   const { data: members } = useTeamMembers(project?.teamId ?? '')
   const memberDirectory = toMemberDirectory(members)
 
   const [showMembers, setShowMembers] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
-  const [showBacklog, setShowBacklog] = useState(false)
   const [showCreateTicket, setShowCreateTicket] = useState(false)
   const [showLaunchSprint, setShowLaunchSprint] = useState(false)
   const [showCompleteSprint, setShowCompleteSprint] = useState(false)
@@ -51,13 +51,6 @@ export function ProjectPage() {
   const boardTickets = assigneeFilter
     ? sprintTickets.filter((ticket) => ticket.assigneeId === assigneeFilter)
     : sprintTickets
-  // Unfinished tickets of a completed sprint wait here until the next sprint is launched and carries them over.
-  const completedSprintIds = new Set((sprints ?? []).filter((sprint) => sprint.status === 'completed').map((sprint) => sprint.id))
-  const backlogTickets = (tickets ?? []).filter(
-    (ticket) =>
-      ticket.sprintId === null || (completedSprintIds.has(ticket.sprintId) && ticket.columnId !== lastColumnId),
-  )
-
   return (
     <div className="flex flex-col gap-8">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
@@ -74,13 +67,12 @@ export function ProjectPage() {
             </div>
           </div>
           <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => setShowBacklog(true)}
+            <Link
+              to={`/projects/${projectId}/backlog`}
               className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
             >
-              Backlog ({backlogTickets.length})
-            </button>
+              Backlog{backlog ? ` (${backlog.total})` : ''}
+            </Link>
             <button
               type="button"
               onClick={() => setShowMembers(true)}
@@ -213,14 +205,6 @@ export function ProjectPage() {
       )}
       {selectedTicketId && <TicketPanel ticketId={selectedTicketId} onClose={() => setSelectedTicketId(null)} />}
       {showSettings && project && <ProjectSettingsModal project={project} onClose={() => setShowSettings(false)} />}
-      {showBacklog && (
-        <BacklogModal
-          projectId={projectId}
-          tickets={backlogTickets}
-          activeSprintId={activeSprint?.id ?? null}
-          onClose={() => setShowBacklog(false)}
-        />
-      )}
       {showCreateColumn && <CreateColumnModal projectId={projectId} onClose={() => setShowCreateColumn(false)} />}
     </div>
   )

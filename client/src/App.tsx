@@ -6,6 +6,7 @@ import { PageTracker } from './features/analytics/PageTracker'
 import { AdminDashboardPage } from './features/admin/AdminDashboardPage'
 import { RequireAdmin } from './features/admin/RequireAdmin'
 import { AppLayout } from './features/dashboard/AppLayout'
+import { BacklogPage } from './features/backlog/BacklogPage'
 import { DemoPage } from './features/demo/DemoPage'
 import { LandingPage } from './features/landing/LandingPage'
 import { MyProjectsPage } from './features/projects/MyProjectsPage'
@@ -25,6 +26,7 @@ function App() {
           <Route element={<AppLayout />}>
             <Route path="/app" element={<MyProjectsPage />} />
             <Route path="/projects/:projectId" element={<ProjectPage />} />
+            <Route path="/projects/:projectId/backlog" element={<BacklogPage />} />
             <Route path="/tickets/:ticketId" element={<TicketPage />} />
             <Route element={<RequireAdmin />}>
               <Route path="/admin" element={<AdminDashboardPage />} />

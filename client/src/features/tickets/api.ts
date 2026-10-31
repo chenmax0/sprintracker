@@ -31,6 +31,40 @@ export function listTickets(projectId: string): Promise<Ticket[]> {
   return apiClient.get(`/api/projects/${projectId}/tickets`)
 }
 
+export type BacklogSort = 'oldest' | 'newest' | 'most_carried_over'
+
+export interface BacklogItem {
+  id: string
+  number: number
+  title: string
+  assigneeId: string | null
+  createdAt: string
+  carriedOverCount: number
+}
+
+export interface BacklogPage {
+  items: BacklogItem[]
+  total: number
+  page: number
+  perPage: number
+}
+
+export interface BacklogQuery {
+  search: string
+  /** A member id, 'none' for unassigned tickets, or '' for everyone. */
+  assignee: string
+  sort: BacklogSort
+  page: number
+  perPage: number
+}
+
+export function listBacklog(projectId: string, query: BacklogQuery): Promise<BacklogPage> {
+  const params = new URLSearchParams({ sort: query.sort, page: String(query.page), perPage: String(query.perPage) })
+  if (query.search) params.set('search', query.search)
+  if (query.assignee) params.set('assignee', query.assignee)
+  return apiClient.get(`/api/projects/${projectId}/backlog?${params}`)
+}
+
 export function getTicket(ticketId: string): Promise<Ticket> {
   return apiClient.get(`/api/tickets/${ticketId}`)
 }
