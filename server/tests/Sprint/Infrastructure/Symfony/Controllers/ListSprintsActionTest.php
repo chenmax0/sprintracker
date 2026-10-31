@@ -27,6 +27,7 @@ class ListSprintsActionTest extends WebTestCase
         $projectId = $this->createTeamAndProject($ownerToken);
         $firstSprintId = $this->createSprint($ownerToken, $projectId);
         $this->completeSprint($ownerToken, $firstSprintId);
+        $this->createSprint($ownerToken, $projectId);
 
         $this->client->request('GET', "/api/projects/$projectId/sprints", server: ['HTTP_AUTHORIZATION' => 'Bearer '.$ownerToken]);
 

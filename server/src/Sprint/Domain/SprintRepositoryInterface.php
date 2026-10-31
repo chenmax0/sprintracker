@@ -21,4 +21,6 @@ interface SprintRepositoryInterface
     public function findByProjectId(ProjectId $projectId): array;
 
     public function hasActiveSprint(ProjectId $projectId): bool;
+
+    public function findLatestCompleted(ProjectId $projectId): ?Sprint;
 }

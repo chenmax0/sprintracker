@@ -76,17 +76,11 @@ trait AppTestHelpers
         return json_decode($this->client->getResponse()->getContent(), true)['id'];
     }
 
-    /**
-     * Completes the given sprint and launches the next one, returning its id.
-     */
-    private function completeSprint(string $ownerToken, string $sprintId): string
+    private function completeSprint(string $ownerToken, string $sprintId): void
     {
         $this->client->request('POST', "/api/sprints/$sprintId/complete", server: [
-            'CONTENT_TYPE' => 'application/json',
             'HTTP_AUTHORIZATION' => 'Bearer '.$ownerToken,
-        ], content: json_encode(['nextStartDate' => '2026-09-29', 'nextEndDate' => '2026-10-13']));
-
-        return json_decode($this->client->getResponse()->getContent(), true)['id'];
+        ]);
     }
 
     private function createTicket(string $ownerToken, string $projectId, string $title = 'Fix bug'): string

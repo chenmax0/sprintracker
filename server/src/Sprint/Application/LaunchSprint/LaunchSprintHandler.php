@@ -6,6 +6,7 @@ namespace App\Sprint\Application\LaunchSprint;
 
 use App\Sprint\Application\Port\ProjectTeamMembershipCheckerInterface;
 use App\Sprint\Application\Port\SprintIdGeneratorInterface;
+use App\Sprint\Application\Port\SprintTicketRolloverInterface;
 use App\Sprint\Domain\Exception\NotAProjectMemberException;
 use App\Sprint\Domain\Exception\SprintAlreadyActiveException;
 use App\Sprint\Domain\ProjectId;
@@ -19,6 +20,7 @@ final class LaunchSprintHandler
         private SprintRepositoryInterface $sprints,
         private SprintIdGeneratorInterface $ids,
         private ProjectTeamMembershipCheckerInterface $projectTeamMembership,
+        private SprintTicketRolloverInterface $rollover,
     ) {
     }
 
@@ -46,6 +48,13 @@ final class LaunchSprintHandler
             new \DateTimeImmutable($payload->endDate),
         );
         $this->sprints->save($sprint);
+
+        // Completing a sprint leaves its unfinished tickets in place; they move
+        // on once the next sprint is actually started.
+        $previous = $this->sprints->findLatestCompleted($projectId);
+        if (null !== $previous) {
+            $this->rollover->rolloverIncompleteTickets((string) $previous->getId(), (string) $sprint->getId());
+        }
 
         return $sprint;
     }

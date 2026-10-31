@@ -7,6 +7,8 @@ import { CreateColumnModal } from '../board/CreateColumnModal'
 import { useColumns } from '../board/hooks'
 import { useSprints } from '../sprints/hooks'
 import { SprintModal } from '../sprints/SprintModal'
+import { useCompleteSprint } from '../sprints/hooks'
+import { ConfirmModal } from '../../lib/ConfirmModal'
 import { MembersModal } from '../teams/MembersModal'
 import { useTeamMembers } from '../teams/hooks'
 import { BacklogModal } from '../tickets/BacklogModal'
@@ -32,7 +34,9 @@ export function ProjectPage() {
   const [showSettings, setShowSettings] = useState(false)
   const [showBacklog, setShowBacklog] = useState(false)
   const [showCreateTicket, setShowCreateTicket] = useState(false)
-  const [sprintModal, setSprintModal] = useState<'launch' | 'complete' | null>(null)
+  const [showLaunchSprint, setShowLaunchSprint] = useState(false)
+  const [showCompleteSprint, setShowCompleteSprint] = useState(false)
+  const completeSprint = useCompleteSprint(projectId)
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null)
   const [assigneeFilter, setAssigneeFilter] = useState('')
   const [editingColumns, setEditingColumns] = useState(false)
@@ -47,7 +51,12 @@ export function ProjectPage() {
   const boardTickets = assigneeFilter
     ? sprintTickets.filter((ticket) => ticket.assigneeId === assigneeFilter)
     : sprintTickets
-  const backlogTickets = (tickets ?? []).filter((ticket) => ticket.sprintId === null)
+  // Unfinished tickets of a completed sprint wait here until the next sprint is launched and carries them over.
+  const completedSprintIds = new Set((sprints ?? []).filter((sprint) => sprint.status === 'completed').map((sprint) => sprint.id))
+  const backlogTickets = (tickets ?? []).filter(
+    (ticket) =>
+      ticket.sprintId === null || (completedSprintIds.has(ticket.sprintId) && ticket.columnId !== lastColumnId),
+  )
 
   return (
     <div className="flex flex-col gap-8">
@@ -118,7 +127,7 @@ export function ProjectPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setSprintModal('complete')}
+                  onClick={() => setShowCompleteSprint(true)}
                   className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-500"
                 >
                   Terminer le sprint
@@ -130,7 +139,7 @@ export function ProjectPage() {
               <p className="text-sm text-gray-500">Aucun sprint en cours.</p>
               <button
                 type="button"
-                onClick={() => setSprintModal('launch')}
+                onClick={() => setShowLaunchSprint(true)}
                 className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-500"
               >
                 Lancer un sprint
@@ -189,11 +198,17 @@ export function ProjectPage() {
           onClose={() => setShowCreateTicket(false)}
         />
       )}
-      {sprintModal && (
-        <SprintModal
-          projectId={projectId}
-          completingSprintId={sprintModal === 'complete' ? (activeSprint?.id ?? undefined) : undefined}
-          onClose={() => setSprintModal(null)}
+      {showLaunchSprint && <SprintModal projectId={projectId} onClose={() => setShowLaunchSprint(false)} />}
+      {showCompleteSprint && activeSprint && (
+        <ConfirmModal
+          title="Terminer le sprint"
+          message="Le sprint sera clôturé. Les tickets non terminés restent en attente et seront reportés sur le prochain sprint, que vous lancerez vous-même."
+          confirmLabel="Terminer le sprint"
+          tone="primary"
+          isPending={completeSprint.isPending}
+          errorMessage={completeSprint.isError ? 'Erreur lors de cette action' : null}
+          onConfirm={() => completeSprint.mutate(activeSprint.id, { onSuccess: () => setShowCompleteSprint(false) })}
+          onClose={() => setShowCompleteSprint(false)}
         />
       )}
       {selectedTicketId && <TicketPanel ticketId={selectedTicketId} onClose={() => setSelectedTicketId(null)} />}

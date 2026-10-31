@@ -9,8 +9,6 @@ final class CompleteSprintPayload
     public function __construct(
         public readonly string $sprintId,
         public readonly string $requesterMemberId,
-        public readonly string $nextStartDate,
-        public readonly string $nextEndDate,
     ) {
     }
 }

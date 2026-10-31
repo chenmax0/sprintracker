@@ -51,19 +51,10 @@ final class SprintController
         return new JsonResponse($this->serializeSprint($sprint), 201);
     }
 
-    public function complete(CompleteSprintHandler $handler, Request $request, #[CurrentUser] SecurityUser $user, string $sprintId): JsonResponse
+    public function complete(CompleteSprintHandler $handler, #[CurrentUser] SecurityUser $user, string $sprintId): JsonResponse
     {
-        $data = new JsonBody($request);
-
-        $payload = new CompleteSprintPayload(
-            $sprintId,
-            $user->getId(),
-            $data->string('nextStartDate'),
-            $data->string('nextEndDate'),
-        );
-
         try {
-            $nextSprint = $handler->handle($payload);
+            $sprint = $handler->handle(new CompleteSprintPayload($sprintId, $user->getId()));
         } catch (LazyAssertionException $e) {
             return $this->validationErrorResponse($e);
         } catch (SprintNotFoundException $e) {
@@ -72,11 +63,9 @@ final class SprintController
             return new JsonResponse(['errors' => [$e->getMessage()]], 403);
         } catch (SprintAlreadyCompletedException $e) {
             return new JsonResponse(['errors' => [$e->getMessage()]], 409);
-        } catch (InvalidSprintDatesException $e) {
-            return new JsonResponse(['errors' => [$e->getMessage()]], 422);
         }
 
-        return new JsonResponse($this->serializeSprint($nextSprint), 201);
+        return new JsonResponse($this->serializeSprint($sprint));
     }
 
     public function list(ListSprintsHandler $handler, #[CurrentUser] SecurityUser $user, string $projectId): JsonResponse

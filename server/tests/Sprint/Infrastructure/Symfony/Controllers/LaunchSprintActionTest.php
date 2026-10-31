@@ -60,10 +60,12 @@ class LaunchSprintActionTest extends WebTestCase
         $projectId = $this->createTeamAndProject($ownerToken);
         $firstSprintId = $this->createSprint($ownerToken, $projectId);
 
-        $this->client->request('POST', "/api/sprints/$firstSprintId/complete", server: [
+        $this->completeSprint($ownerToken, $firstSprintId);
+
+        $this->client->request('POST', "/api/projects/$projectId/sprints", server: [
             'CONTENT_TYPE' => 'application/json',
             'HTTP_AUTHORIZATION' => 'Bearer '.$ownerToken,
-        ], content: json_encode(['nextStartDate' => '2026-09-29', 'nextEndDate' => '2026-10-13']));
+        ], content: json_encode(['startDate' => '2026-09-29', 'endDate' => '2026-10-13']));
 
         self::assertResponseStatusCodeSame(201);
         self::assertSame('Sprint 2', json_decode($this->client->getResponse()->getContent(), true)['name']);

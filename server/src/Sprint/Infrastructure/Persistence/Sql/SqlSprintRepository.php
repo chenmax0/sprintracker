@@ -83,6 +83,16 @@ final class SqlSprintRepository implements SprintRepositoryInterface
         return false !== $found;
     }
 
+    public function findLatestCompleted(ProjectId $projectId): ?Sprint
+    {
+        $row = $this->connection->fetchAssociative(
+            "SELECT id, project_id, number, start_date, end_date, status FROM sprint WHERE project_id = :project_id AND status = 'completed' ORDER BY number DESC LIMIT 1",
+            ['project_id' => (string) $projectId],
+        );
+
+        return false === $row ? null : $this->hydrate($row);
+    }
+
     private function hydrate(array $row): Sprint
     {
         return Sprint::fromPersistence(

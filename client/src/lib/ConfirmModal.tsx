@@ -4,6 +4,8 @@ interface ConfirmModalProps {
   title: string
   message: string
   confirmLabel?: string
+  /** 'danger' (default) for deletions, 'primary' for harmless confirmations. */
+  tone?: 'danger' | 'primary'
   isPending?: boolean
   errorMessage?: string | null
   onConfirm: () => void
@@ -18,6 +20,7 @@ export function ConfirmModal({
   title,
   message,
   confirmLabel = 'Supprimer',
+  tone = 'danger',
   isPending = false,
   errorMessage,
   onConfirm,
@@ -39,7 +42,9 @@ export function ConfirmModal({
           type="button"
           onClick={onConfirm}
           disabled={isPending}
-          className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-500 disabled:opacity-50"
+          className={`rounded-md px-4 py-2 text-sm font-medium text-white disabled:opacity-50 ${
+            tone === 'danger' ? 'bg-red-600 hover:bg-red-500' : 'bg-indigo-600 hover:bg-indigo-500'
+          }`}
         >
           {confirmLabel}
         </button>

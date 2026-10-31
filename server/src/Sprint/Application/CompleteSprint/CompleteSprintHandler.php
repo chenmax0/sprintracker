@@ -4,10 +4,7 @@ declare(strict_types=1);
 
 namespace App\Sprint\Application\CompleteSprint;
 
-use App\Sprint\Application\LaunchSprint\LaunchSprintHandler;
-use App\Sprint\Application\LaunchSprint\LaunchSprintPayload;
 use App\Sprint\Application\Port\ProjectTeamMembershipCheckerInterface;
-use App\Sprint\Application\Port\SprintTicketRolloverInterface;
 use App\Sprint\Domain\Exception\NotAProjectMemberException;
 use App\Sprint\Domain\Exception\SprintNotFoundException;
 use App\Sprint\Domain\Sprint;
@@ -20,8 +17,6 @@ final class CompleteSprintHandler
         private CompleteSprintValidator $validator,
         private SprintRepositoryInterface $sprints,
         private ProjectTeamMembershipCheckerInterface $projectTeamMembership,
-        private SprintTicketRolloverInterface $rollover,
-        private LaunchSprintHandler $launchSprint,
     ) {
     }
 
@@ -41,15 +36,6 @@ final class CompleteSprintHandler
         $sprint->complete();
         $this->sprints->save($sprint);
 
-        $nextSprint = $this->launchSprint->handle(new LaunchSprintPayload(
-            (string) $sprint->getProjectId(),
-            $payload->requesterMemberId,
-            $payload->nextStartDate,
-            $payload->nextEndDate,
-        ));
-
-        $this->rollover->rolloverIncompleteTickets((string) $sprint->getId(), (string) $nextSprint->getId());
-
-        return $nextSprint;
+        return $sprint;
     }
 }
